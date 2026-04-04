@@ -32,13 +32,12 @@ private:
     void Paint();
     void SetBrushWorldPos(Renderer& renderer);
 
-    void InitShaderProgram(Renderer& renderer);
+    //void InitShaderProgram(Renderer& renderer);
     void InitUVShaderProgram(Renderer& renderer);
     void InitDepthShaderProgram(Renderer& renderer);
 
     void RenderUV(Renderer& renderer);
     void RenderBrush();
-    void RenderPaint();
 
     void ApplyBrushToPaintTextureCPU();
 
@@ -48,7 +47,6 @@ private:
     void InitFramebuffer();
     void InitUVFramebuffer();
     void InitDepthFramebuffer();
-    void UpdateMousePos(glm::vec2 mousePosition);
     void DebugDraw();
     
     void InitDebugShaderProgram(Renderer& renderer);
@@ -56,6 +54,7 @@ private:
 
     void InitFullscreenQuad();
     void RenderBrushMask();
+    void PaintComputeGPU();
 
 private:
     int m_drawcallCollectionIndex;
@@ -74,6 +73,10 @@ private:
 
     std::shared_ptr<glm::vec3> m_brushWorldPos;
     std::shared_ptr<glm::vec3> m_brushWorldNormal;
+    std::shared_ptr<glm::vec3> m_brushPos;
+    std::shared_ptr<glm::vec3> m_brushNormal;
+
+
     std::shared_ptr<glm::vec2> m_mousePosition;
     std::shared_ptr<float> m_brushRadius;
     std::shared_ptr<bool> m_paint;

@@ -1,10 +1,9 @@
-#include <ituGL/renderer/PaintRenderPass.h>
-
 #include <ituGL/camera/Camera.h>
 #include <ituGL/shader/Material.h>
 #include <ituGL/geometry/VertexArrayObject.h>
 #include <ituGL/renderer/Renderer.h>
 #include <ituGL/asset/ShaderLoader.h>
+#include "PaintRenderPass.h"
 
 
 #include "iostream"
@@ -15,6 +14,8 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
 {   
 
     m_mousePosition = std::make_shared<glm::vec2>(0.0f);
+    m_brushPos = std::make_shared<glm::vec3>(0.0f);
+    m_brushNormal = std::make_shared<glm::vec3>(0.0f);
     m_brushWorldPos = std::make_shared<glm::vec3>(0.0f);
     m_brushWorldNormal = std::make_shared<glm::vec3>(0.0f);
     m_brushRadius = std::make_shared<float>(0.1f);
@@ -40,7 +41,10 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
 
     //InitFullscreenQuad();
 
-    std::cout << glGetString(GL_VERSION) << std::endl;
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
+   
+
     /*
     */
 }
@@ -254,6 +258,7 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
 {
     const Camera& camera = renderer.GetCurrentCamera();
     Camera tcam = Camera();
+    *m_brushWorldNormal = *m_brushNormal;//todo
     const glm::vec3 pos = *m_brushWorldPos + *m_brushWorldNormal;
     tcam.SetViewMatrix(*m_brushWorldPos,pos, glm::vec3(0.0f, 1.0f, 0.0f));
 
@@ -310,7 +315,8 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     float pixel[4];
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, pixel);
 
-    *m_brushWorldNormal = glm::vec3(pixel[0], pixel[1], pixel[2]);
+    *m_brushNormal = glm::vec3(pixel[0], pixel[1], pixel[2]);
+    std::cout << "BrushNormal" << m_brushNormal->x << "," << m_brushNormal->y << "," << m_brushNormal->z << std::endl;
 
     glReadBuffer(GL_NONE);
 
@@ -326,12 +332,13 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     // Clip space
     glm::vec4 clip(ndcX, ndcY, ndcZ, 1.0f);
 
+
     glm::vec4 world = glm::inverse(camera.GetViewProjectionMatrix()) * clip;
     
-    world /= world.w;
-    *m_brushWorldPos = glm::vec3(world);
+    *m_brushWorldPos = glm::vec3(world.x, world.y, world.z);
+    *m_brushPos = glm::vec3(clip.x, clip.y, clip.z);
 
-    std::cout << m_brushWorldPos->x << "," << m_brushWorldPos->y << "," << m_brushWorldPos->z << std::endl;
+    //std::cout << m_brushWorldPos->x << "," << m_brushWorldPos->y << "," << m_brushWorldPos->z << std::endl;
 }
 
 
@@ -526,8 +533,8 @@ void PaintRenderPass::RenderBrushMask()
 
     FramebufferObject::Unbind();
 }
-/*
-    if (*m_paint) {
+
+void PaintRenderPass::PaintComputeGPU(){
 
         // --- COMPUTE PASS ---
         m_computeShaderProgramPtr->Use();
@@ -558,5 +565,4 @@ void PaintRenderPass::RenderBrushMask()
         // IMPORTANT: sync so texture is usable after
         glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 
-    }
-    */
+}

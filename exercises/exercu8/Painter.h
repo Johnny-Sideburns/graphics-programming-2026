@@ -1,9 +1,9 @@
 #pragma once
 
 #include <ituGL/renderer/Renderer.h>
-#include <ituGL/renderer/PaintRenderPass.h>
 #include <ituGL/texture/Texture2DObject.h>
 #include <ituGL/shader/Material.h>
+#include "renderer/PaintRenderPass.h"
 
 #include <ituGL/application/Window.h>
 
