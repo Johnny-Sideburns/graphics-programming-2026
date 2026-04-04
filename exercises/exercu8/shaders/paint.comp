@@ -1,0 +1,42 @@
+#version 430 core
+
+// Defines how many threads per workgroup
+layout(local_size_x = 16, local_size_y = 16) in;
+
+// Read-only texture
+layout(binding = 0) uniform sampler2D UVTexture;
+
+// Writable texture
+layout(rgba8, binding = 1) uniform image2D PaintTexture;
+
+// Uniforms
+uniform vec2 MouseUV;
+uniform float BrushRadius;
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+
+    ivec2 size = textureSize(UVTexture, 0);
+    if (pixel.x >= size.x || pixel.y >= size.y)
+        return;
+
+    vec2 screenUV = (vec2(pixel) + 0.5) / vec2(size);
+
+    float dist = distance(screenUV, MouseUV);
+    if (dist > BrushRadius)
+        return;
+
+    vec2 uv = texture(UVTexture, screenUV).xy;
+
+    if (uv == vec2(0.0))
+        return;
+
+    ivec2 paintSize = imageSize(PaintTexture);
+    ivec2 texel = ivec2(uv * vec2(paintSize));
+
+    imageStore(PaintTexture, texel, vec4(1, 0, 0, 1));
+}
+
+    //ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    //imageStore(PaintTexture, pixel, vec4(1,0,0,1));
