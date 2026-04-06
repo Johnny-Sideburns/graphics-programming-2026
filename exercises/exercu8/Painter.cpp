@@ -3,6 +3,7 @@
 #include <ituGL/asset/ShaderLoader.h>
 #include <ituGL/shader/ShaderUniformCollection.h>
 #include <ituGL/camera/Camera.h>
+#include <ituGL/scene/SceneCamera.h>
 
 
 

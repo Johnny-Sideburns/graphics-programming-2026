@@ -12,7 +12,7 @@ class Painter
 {
 public:
 	Painter();
-	Painter(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target );
+	Painter(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target);
 	void Update(const Window& window, float deltaTime);
 	void Paint(const Window& window);
 	//void InitializeShaderProgram(Renderer& renderer);

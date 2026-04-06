@@ -61,6 +61,7 @@ private:
 
     std::shared_ptr<Texture2DObject> m_depthTexture;
     std::shared_ptr<Texture2DObject> m_paintTexture;
+    std::shared_ptr<Texture2DObject> m_brushTexture;
     std::shared_ptr<Texture2DObject> m_UVTexture;
     std::shared_ptr<Texture2DObject> m_normalsTexture;
     
@@ -76,6 +77,7 @@ private:
     std::shared_ptr<glm::vec3> m_brushPos;
     std::shared_ptr<glm::vec3> m_brushNormal;
 
+    std::shared_ptr<Camera> m_paintCam;
 
     std::shared_ptr<glm::vec2> m_mousePosition;
     std::shared_ptr<float> m_brushRadius;

@@ -1,8 +1,10 @@
 #include <ituGL/camera/Camera.h>
+#include <ituGL/scene/SceneCamera.h>
 #include <ituGL/shader/Material.h>
 #include <ituGL/geometry/VertexArrayObject.h>
 #include <ituGL/renderer/Renderer.h>
 #include <ituGL/asset/ShaderLoader.h>
+
 #include "PaintRenderPass.h"
 
 
@@ -21,6 +23,8 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
     m_brushRadius = std::make_shared<float>(0.1f);
     m_paint = std::make_shared<bool>(false);
     
+    m_paintCam = std::make_shared<Camera>();
+
     InitDebugShaderProgram(renderer);
     std::cout << "debug shade init" << std::endl;
 
@@ -187,8 +191,10 @@ void PaintRenderPass::InitDepthShaderProgram(Renderer& renderer)
 void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
 {
     // Load and build shader
+    //Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/uvlook.vert");
     Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/uvlook.vert");
-    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/uvdisc.frag");
+    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/uvpaint.frag");
+    //Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/uvpaint.frag");
     m_UVShaderProgramPtr = std::make_shared<ShaderProgram>();
     m_UVShaderProgramPtr->Build(vertexShader, fragmentShader);
 
@@ -196,7 +202,7 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
     ShaderProgram::Location worldMatrixLocation = m_UVShaderProgramPtr->GetUniformLocation("WorldMatrix");
     ShaderProgram::Location worldViewMatrixLocation = m_UVShaderProgramPtr->GetUniformLocation("WorldViewMatrix");
     ShaderProgram::Location worldViewProjMatrixLocation = m_UVShaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
-    ShaderProgram::Location mouseWorldPositionLocation = m_UVShaderProgramPtr->GetUniformLocation("MouseWP");
+    ShaderProgram::Location mouseWorldPositionLocation = m_UVShaderProgramPtr->GetUniformLocation("BrushWorldPos");
     ShaderProgram::Location brushLocation = m_UVShaderProgramPtr->GetUniformLocation("BrushRadius");
     ShaderProgram::Location brushNormalLocation = m_UVShaderProgramPtr->GetUniformLocation("BrushNormal");
 
@@ -212,6 +218,7 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
         },
         nullptr
     );
+
 }
 
 void PaintRenderPass::InitComputeShaderProgram()
@@ -236,7 +243,7 @@ void PaintRenderPass::Render()
         *m_paint = false;
     }
     
-    DebugDraw();
+    //DebugDraw();
     
     //Unbind the framebuffer
     FramebufferObject::Unbind();
@@ -250,19 +257,33 @@ void PaintRenderPass::Paint()
     Renderer& renderer = GetRenderer();
     SetBrushWorldPos(renderer);
     RenderUV(renderer);
-    //ApplyBrushToPaintTextureCPU();
+    ApplyBrushToPaintTextureCPU();
 
 }
 
+
+    
+    /*
+    for (int i = 0; i < 3; ++i)
+    {
+        std::cout
+            << tvm[i][0] << " "
+            << tvm[i][1] << " "
+            << tvm[i][2] << std::endl;
+    }
+    Camera tcam = Camera();
+    tcam.SetViewMatrix(*m_brushWorldPos, pos, glm::vec3(0.0f, 1.0f, 0.0f));
+    */
 void PaintRenderPass::RenderUV(Renderer& renderer)
 {
+    /*
     const Camera& camera = renderer.GetCurrentCamera();
-    Camera tcam = Camera();
-    *m_brushWorldNormal = *m_brushNormal;//todo
-    const glm::vec3 pos = *m_brushWorldPos + *m_brushWorldNormal;
-    tcam.SetViewMatrix(*m_brushWorldPos,pos, glm::vec3(0.0f, 1.0f, 0.0f));
 
-    renderer.SetCurrentCamera(tcam);
+    glm::vec3 pos = *m_brushWorldPos + *m_brushWorldNormal;
+    m_paintCam->SetViewMatrix(*m_brushWorldPos,pos, glm::vec3(0.0f, 1.0f, 0.0f));
+
+    renderer.SetCurrentCamera(*m_paintCam);
+    */
 
     const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
 
@@ -275,10 +296,12 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
     {
         renderer.UpdateTransforms(m_UVShaderProgramPtr, drawcallInfo.worldMatrixIndex);
 
+        //glDisable(GL_DEPTH_TEST);
         drawcallInfo.vao.Bind();
         drawcallInfo.drawcall.Draw();
     }
-    renderer.SetCurrentCamera(camera);
+    //renderer.SetCurrentCamera(camera);
+    glEnable(GL_DEPTH_TEST);
 }
 
 void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
@@ -315,8 +338,8 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     float pixel[4];
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, pixel);
 
-    *m_brushNormal = glm::vec3(pixel[0], pixel[1], pixel[2]);
-    std::cout << "BrushNormal" << m_brushNormal->x << "," << m_brushNormal->y << "," << m_brushNormal->z << std::endl;
+    *m_brushWorldNormal = glm::vec3(pixel[0], pixel[1], pixel[2]);
+    //std::cout << "BrushNormal" << m_brushNormal->x << "," << m_brushNormal->y << "," << m_brushNormal->z << std::endl;
 
     glReadBuffer(GL_NONE);
 
@@ -332,13 +355,14 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     // Clip space
     glm::vec4 clip(ndcX, ndcY, ndcZ, 1.0f);
 
-
     glm::vec4 world = glm::inverse(camera.GetViewProjectionMatrix()) * clip;
+    world = world / world.w;
     
     *m_brushWorldPos = glm::vec3(world.x, world.y, world.z);
-    *m_brushPos = glm::vec3(clip.x, clip.y, clip.z);
+    //*m_brushWorldPos = glm::vec3(0.0);
+    //*m_brushPos = glm::vec3(clip.x, clip.y, clip.z);
 
-    //std::cout << m_brushWorldPos->x << "," << m_brushWorldPos->y << "," << m_brushWorldPos->z << std::endl;
+    std::cout << m_brushWorldPos->x << "," << m_brushWorldPos->y << "," << m_brushWorldPos->z << std::endl;
 }
 
 
