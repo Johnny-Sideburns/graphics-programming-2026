@@ -14,10 +14,8 @@ Painter::Painter(int width, int height, Renderer& renderer, std::shared_ptr<Text
 {
     //InitializeShaderProgram(renderer);
     m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer, target);
-    //m_renderer = renderer;
     m_depthTexture = m_paintRenderPass->GetDepthTexture();
     m_paintTexture = m_paintRenderPass->GetPaintTexture();
-    m_shaderProgramPtr = m_paintRenderPass->GetShaderProgram();
     m_paint = m_paintRenderPass->GetPaintPtr();
     m_mousePosition = m_paintRenderPass->GetMousePosPtr();
     renderer.AddRenderPass(std::move(m_paintRenderPass));

@@ -43,12 +43,6 @@ void SceneViewerApplication::Initialize()
     InitializeModels();
     InitializeRenderer();
 
-    /*
-    int width, height;
-    GetMainWindow().GetDimensions(width, height);
-    m_painter = std::make_shared<Painter>(width, height, m_renderer);
-    */
-
     int width, height;
     GetMainWindow().GetDimensions(width, height);
     m_painter = std::make_shared<Painter>(width, height, m_renderer, m_tex2D);
@@ -223,7 +217,8 @@ void SceneViewerApplication::InitializeModels()
 
     //std::shared_ptr<Model> clockModel = loader.LoadShared("models/alarm_clock/alarm_clock.obj");
     //m_scene.AddSceneNode(std::make_shared<SceneModel>("alarm clock", clockModel));
-
+    /*
+    */
     std::shared_ptr<TextureObject> tex;
     chestModel->GetMaterial(0).GetUniformValue("ColorTexture", tex);
 
