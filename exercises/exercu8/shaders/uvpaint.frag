@@ -24,14 +24,16 @@ void main()
 
     //if (dist > BrushRadius)
     //if (distance(WorldNormal, BrushNormal) + distance(WorldPos, BrushWorldPos) > BrushRadius)
-    if (distance(WorldPos, BrushWorldPos) > BrushRadius)
+    if (distance(WorldPos, BrushWorldPos) > BrushRadius) // || dot(BrushNormal, WorldNormal) <= 0.0)
     {
-        //discard;
-        FragColor = vec4(0.0);
+        //FragColor = vec4(TexCoord, 0.0, 1.0);
+        
+        discard;
+        //FragColor = vec4(0.0);
     }
 
  
     else {
-        FragColor = vec4(TexCoord, 0.0, 1.0);
+        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
     }
 }

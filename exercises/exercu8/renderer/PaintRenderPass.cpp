@@ -9,7 +9,7 @@
 
 #include "iostream"
 
-PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target, int drawcallCollectionIndex)
+PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int drawcallCollectionIndex)
     : m_drawcallCollectionIndex(drawcallCollectionIndex),
     m_width(width), m_height(height)
 {   
@@ -27,15 +27,15 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
     InitUVShaderProgram(renderer);
     std::cout << "uv shade init" << std::endl;
 
-    InitComputeShaderProgram();
-    std::cout << "compute shade init" << std::endl;
+    //InitComputeShaderProgram();
+    //std::cout << "compute shade init" << std::endl;
 
     //other inits
     InitTextures(width, height);
     std::cout << "compute shade init" << std::endl;
 
-    m_paintTexture = target;
-    std::cout << "compute shade init" << std::endl;
+    //m_paintTexture = target;
+    //std::cout << "compute shade init" << std::endl;
 
     InitUVFramebuffer();
     std::cout << "compute shade init" << std::endl;
@@ -97,7 +97,7 @@ void PaintRenderPass::InitUVFramebuffer()
     m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
 
     // Set the uv texture as color attachment 0
-    m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_uvTexture);
+    m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
 
     // Set the draw buffers used by the framebuffer (all attachments except depth)
     m_uvFramebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 1>(
@@ -232,9 +232,7 @@ void PaintRenderPass::Render()
         *m_paint = false;
     }
     
-    //DebugDraw();
-    
-    //Unbind the framebuffer
+
     FramebufferObject::Unbind();
 
 }
@@ -244,28 +242,8 @@ void PaintRenderPass::Paint()
     Renderer& renderer = GetRenderer();
     SetBrushWorldPos(renderer);
     RenderUV(renderer);
-    if (m_compute) {
-
-    }
-    else {
-        ApplyBrushToPaintTextureCPU();
-    }
 
 }
-
-
-    
-    /*
-    for (int i = 0; i < 3; ++i)
-    {
-        std::cout
-            << tvm[i][0] << " "
-            << tvm[i][1] << " "
-            << tvm[i][2] << std::endl;
-    }
-    Camera tcam = Camera();
-    tcam.SetViewMatrix(*m_brushWorldPos, pos, glm::vec3(0.0f, 1.0f, 0.0f));
-    */
 
 //The render uv pass
 void PaintRenderPass::RenderUV(Renderer& renderer)
@@ -275,13 +253,15 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
     m_uvFramebuffer.Bind();
     m_uvShaderProgramPtr->Use();
 
-    renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
+    //renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
     
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {   
-      
-        std::cout << m_texId <<  " , " << drawcallInfo.worldMatrixIndex << " ?" << std::endl;
-
+        std::shared_ptr<TextureObject> tex;
+        drawcallInfo.material.GetUniformValue("ColorTexture", tex);
+        m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
+        if (!m_paintTexture) continue;
+        m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
         renderer.UpdateTransforms(m_uvShaderProgramPtr, drawcallInfo.worldMatrixIndex);
         drawcallInfo.vao.Bind();
         drawcallInfo.drawcall.Draw();
@@ -348,26 +328,6 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
 
     std::cout << m_brushWorldPos->x << "," << m_brushWorldPos->y << "," << m_brushWorldPos->z << std::endl;
 
-    /*
-    unsigned int id = 0;
-    glReadBuffer(GL_COLOR_ATTACHMENT1);
-    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &id);
-    
-    m_texId = id;
-
-    std::cout << m_modelId << std::endl;
-    m_paintTexture = nullptr;
-    for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
-    {
-        std::shared_ptr<TextureObject> tex;
-        drawcallInfo.material.GetUniformValue("ColorTexture", tex);
-        if (m_texId == m_textureIdMap->GetId(tex))
-        {
-            m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
-            break;
-        }
-    }
-    */
 }
 
 
@@ -422,128 +382,4 @@ void PaintRenderPass::DebugDraw()
         GL_COLOR_BUFFER_BIT,
         GL_NEAREST
     );
-}
-
-void PaintRenderPass::InitDebugShaderProgram(Renderer& renderer)
-{
-    // Load and build shader
-    Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/debugVert.vert");
-    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/debugFrag.frag");
-    m_debugShaderProgramPtr = std::make_shared<ShaderProgram>();
-    m_debugShaderProgramPtr->Build(vertexShader, fragmentShader);
-
-    // Get transform related uniform locations
-    ShaderProgram::Location worldViewMatrixLocation = m_debugShaderProgramPtr->GetUniformLocation("WorldViewMatrix");
-    ShaderProgram::Location worldViewProjMatrixLocation = m_debugShaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
-    m_debugPaintTextureLocation = m_debugShaderProgramPtr->GetUniformLocation("PaintTexture");
-
-
-    renderer.RegisterShaderProgram(m_debugShaderProgramPtr,
-        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
-        {
-            shaderProgram.SetUniform(worldViewMatrixLocation, camera.GetViewMatrix() * worldMatrix);
-            shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
-        },
-        nullptr
-    );
-}
-
-void PaintRenderPass::RenderBrush()
-{
-    Renderer& renderer = GetRenderer();
-
-    const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
-
-    //paint render pass
-    m_depthFramebuffer.Bind();
-    m_hitShaderProgramPtr->Use();
-
-    renderer.GetDevice().Clear(false, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
-    // for all drawcalls
-    for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
-    {
-        renderer.UpdateTransforms(m_hitShaderProgramPtr, drawcallInfo.worldMatrixIndex);
-
-        drawcallInfo.vao.Bind();
-        drawcallInfo.drawcall.Draw();
-    }
-}
-
-
-void PaintRenderPass::InitFullscreenQuad()
-{
-    if (m_quadVAO != 0) return; // already initialized
-
-    float quadVertices[] = {
-        // positions   // texcoords
-        -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f,  0.0f, 1.0f,
-         1.0f,  1.0f,  1.0f, 1.0f
-    };
-
-    glGenVertexArrays(1, &m_quadVAO);
-    glGenBuffers(1, &m_quadVBO);
-
-    glBindVertexArray(m_quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
-    // positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-    // texcoords
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-void PaintRenderPass::RenderBrushMask()
-{
-    m_depthFramebuffer.Bind(); // write to brushmask texture
-    glViewport(0, 0, m_width, m_height);
-
-    m_hitShaderProgramPtr->Use();
-
-    // bind textures
-    //m_brushShaderProgramPtr->SetTexture(uvTextureLocation, 0, *m_UVTexture);
-    //m_brushShaderProgramPtr->SetTexture(brushMaskLocation, 1, *m_brushMask);
-
-    // draw fullscreen quad
-    glBindVertexArray(m_quadVAO);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    glBindVertexArray(0);
-
-    FramebufferObject::Unbind();
-}
-
-void PaintRenderPass::PaintComputeGPU(){
-
-        // --- COMPUTE PASS ---
-        m_computeShaderProgramPtr->Use();
-
-        // Bind UV texture (read)
-        glActiveTexture(GL_TEXTURE0);
-        m_uvTexture->Bind();
-        glUniform1i(m_uvTextureLocation, 0);
-        auto handle = std::as_const(*m_paintTexture).GetHandle();
-        assert(handle != 0);
-        std::cout << "handle not 0" << std::endl;
-        // Bind paint texture (write)
-        glBindImageTexture(1, std::as_const(*m_paintTexture).GetHandle(), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-
-        // Dispatch
-        int groupSizeX = 16;
-        int groupSizeY = 16;
-
-        int groupsX = (m_width + groupSizeX - 1) / groupSizeX;
-        int groupsY = (m_height + groupSizeY - 1) / groupSizeY;
-
-        glDispatchCompute(groupsX, groupsY, 1);
-
-        // IMPORTANT: sync so texture is usable after
-        glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-
 }

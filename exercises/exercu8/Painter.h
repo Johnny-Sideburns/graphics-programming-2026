@@ -8,15 +8,15 @@
 #include <ituGL/application/Window.h>
 
 
+
 class Painter
 {
 public:
 	Painter();
-	Painter(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target);
+	Painter(Window& window, Renderer& renderer);
 	void Update(const Window& window, float deltaTime);
 	void Paint(const Window& window);
-	//void InitializeShaderProgram(Renderer& renderer);
-	//void InitializeMaterial(Renderer& renderer);
+	void UpdateBrushScale(float deltaTime, float offset);
 
 protected:
 
@@ -25,11 +25,14 @@ private:
 	std::shared_ptr<Texture2DObject> m_depthTexture;
 	std::shared_ptr<Texture2DObject> m_paintTexture;
 	std::shared_ptr<bool> m_paint;
+	std::shared_ptr<float> m_brushRadius;
+
 	float m_delay = 0;
+	float m_radius = 0.5f;
 
-	std::shared_ptr<Texture2DObject> m_targetTexture;
-
-	std::shared_ptr<ShaderProgram> m_shaderProgramPtr;
 	std::shared_ptr<glm::vec2> m_mousePosition;
+
+	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+
 
 };

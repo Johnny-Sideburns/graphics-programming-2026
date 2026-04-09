@@ -43,9 +43,8 @@ void SceneViewerApplication::Initialize()
     InitializeModels();
     InitializeRenderer();
 
-    int width, height;
-    GetMainWindow().GetDimensions(width, height);
-    m_painter = std::make_shared<Painter>(width, height, m_renderer, m_tex2D);
+    m_painter = std::make_shared<Painter>(GetMainWindow(), m_renderer);
+
 }
 
 void SceneViewerApplication::Update()
@@ -209,8 +208,8 @@ void SceneViewerApplication::InitializeModels()
     std::shared_ptr<Model> chestModel = loader.LoadShared("models/treasure_chest/treasure_chest.obj");
     m_scene.AddSceneNode(std::make_shared<SceneModel>("treasure chest", chestModel));
 
-    //std::shared_ptr<Model> cameraModel = loader.LoadShared("models/camera/camera.obj");
-    //m_scene.AddSceneNode(std::make_shared<SceneModel>("camera model", cameraModel));
+    std::shared_ptr<Model> cameraModel = loader.LoadShared("models/camera/camera.obj");
+    m_scene.AddSceneNode(std::make_shared<SceneModel>("camera model", cameraModel));
 
     //std::shared_ptr<Model> teaSetModel = loader.LoadShared("models/tea_set/tea_set.obj");
     //m_scene.AddSceneNode(std::make_shared<SceneModel>("tea set", teaSetModel));
@@ -219,10 +218,9 @@ void SceneViewerApplication::InitializeModels()
     //m_scene.AddSceneNode(std::make_shared<SceneModel>("alarm clock", clockModel));
     /*
     */
-    std::shared_ptr<TextureObject> tex;
-    chestModel->GetMaterial(0).GetUniformValue("ColorTexture", tex);
+    std::shared_ptr<Model> chestModel2 = loader.LoadShared("models/treasure_chest/treasure_chest.obj");
+    m_scene.AddSceneNode(std::make_shared<SceneModel>("treasure chest2", chestModel2));
 
-    m_tex2D = std::dynamic_pointer_cast<Texture2DObject>(tex);
 
 
 }

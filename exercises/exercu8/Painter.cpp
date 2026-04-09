@@ -9,29 +9,57 @@
 
 #include "iostream"
 
+namespace Input
+{
+    float scrollY = 1.0f;
+}
+
 Painter::Painter(){}
-Painter::Painter(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target)
+Painter::Painter(Window& window, Renderer& renderer)
 {
     //InitializeShaderProgram(renderer);
-    m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer, target);
+    int width, height;
+    window.GetDimensions(width, height);
+    m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer);
     m_depthTexture = m_paintRenderPass->GetDepthTexture();
     m_paintTexture = m_paintRenderPass->GetPaintTexture();
     m_paint = m_paintRenderPass->GetPaintPtr();
+    m_brushRadius = m_paintRenderPass->GetBrushRadius();
     m_mousePosition = m_paintRenderPass->GetMousePosPtr();
     renderer.AddRenderPass(std::move(m_paintRenderPass));
-    m_targetTexture = target;
+
+    glfwSetScrollCallback(window.GetInternalWindow(), scroll_callback);
+
+
 }
 
 void Painter::Update(const Window& window, float deltaTime)
 {
-    if (m_delay > 0.0f) {
-        m_delay -= deltaTime;
-        return;
-    }
+    UpdateBrushScale(0,0);
     if (window.IsMouseButtonPressed(Window::MouseButton(GLFW_MOUSE_BUTTON_LEFT))) {
         std::cout << "fps: " << 1.f/deltaTime << std::endl;
         Paint(window);
     }
+    
+}
+
+void Painter::UpdateBrushScale(float deltaTime, float offset)
+{
+    if (Input::scrollY >= 200.f) {
+        *m_brushRadius = 1.0f;
+        return;
+    }
+    if (Input::scrollY < 0.0f) {
+        *m_brushRadius = 0.0f;
+        return;
+    }
+    *m_brushRadius = Input::scrollY/200.f;
+}
+
+void Painter::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    Input::scrollY += (float)yoffset;
+    
 }
 
 void Painter::Paint(const Window& window)
@@ -44,76 +72,4 @@ void Painter::Paint(const Window& window)
     *m_mousePosition = glm::vec2(pos[0], height - pos[1]);
 
     *m_paint = true;
-    m_delay = 0.033;
 }
-
-/*
-void Painter::InitializeShaderProgram(Renderer& renderer)
-{
-    // Load and build shader
-    Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/uvlook.vert");
-    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/uvlook.frag");
-    m_shaderProgramPtr = std::make_shared<ShaderProgram>();
-    m_shaderProgramPtr->Build(vertexShader, fragmentShader);
-
-    // Get transform related uniform locations
-    ShaderProgram::Location worldViewMatrixLocation = m_shaderProgramPtr->GetUniformLocation("WorldViewMatrix");
-    ShaderProgram::Location worldViewProjMatrixLocation = m_shaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
-    ShaderProgram::Location paintTextureLocation = m_shaderProgramPtr->GetUniformLocation("PaintTexture");
-
-
-    renderer.RegisterShaderProgram(m_shaderProgramPtr,
-        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
-        {
-            shaderProgram.SetUniform(worldViewMatrixLocation, camera.GetViewMatrix() * worldMatrix);
-            shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
-        },
-        nullptr
-    );
-}
-
-
-
-Painter::Painter(){}
-Painter::Painter(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target)
-{
-    //InitializeShaderProgram(renderer);
-    m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer, target);
-    //m_renderer = renderer;
-    m_depthTexture = m_paintRenderPass->GetDepthTexture();
-    m_paintTexture = m_paintRenderPass->GetPaintTexture();
-    m_shaderProgramPtr = m_paintRenderPass->GetShaderProgram();
-    m_paint = m_paintRenderPass->GetPaintPtr();
-    m_mousePosition = m_paintRenderPass->GetMousePosPtr();
-    renderer.AddRenderPass(std::move(m_paintRenderPass));
-    m_targetTexture = target;
-}
-
-void Painter::Update(const Window& window, float deltaTime)
-{
-    if (m_delay > 0.0f) {
-        m_delay -= deltaTime;
-        return;
-    }
-    if (window.IsMouseButtonPressed(Window::MouseButton(GLFW_MOUSE_BUTTON_LEFT))) {
-        std::cout << "fps: " << 1.f/deltaTime << std::endl;
-        Paint(window);
-    }
-}
-
-void Painter::Paint(const Window& window)
-{
-    int width, height;
-    window.GetDimensions(width, height);
-
-    //glm::vec2 pos = window.GetMousePosition(true);
-    //*m_mousePosition = glm::vec2((pos[0] + 1) / 2, (pos[1] + 1) / 2);
-    *m_mousePosition = window.GetMousePosition();
-
-    *m_paint = true;
-    m_delay = 0.033;
-}
-
-
-
-*/

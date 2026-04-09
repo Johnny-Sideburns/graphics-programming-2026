@@ -14,7 +14,7 @@ class Renderer;
 class PaintRenderPass : public RenderPass
 {
 public:
-    PaintRenderPass(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target, int drawcallCollectionIndex = 0);
+    PaintRenderPass(int width, int height, Renderer& renderer, int drawcallCollectionIndex = 0);
 
     void Render() override;
 
@@ -47,13 +47,11 @@ private:
     void InitComputeShaderProgram();
 
     void InitTextures(int width, int height);
-    void InitFramebuffer();
     void InitUVFramebuffer();
     void InitDepthFramebuffer();
     void DebugDraw();
     
     void InitDebugShaderProgram(Renderer& renderer);
-    void DebugDisplay();
 
     void InitFullscreenQuad();
     void RenderBrushMask();
@@ -71,6 +69,7 @@ private:
     std::shared_ptr<TextureIdMap> m_textureIdMap;
     std::shared_ptr<ShaderProgram> m_uvShaderProgramPtr;
     std::shared_ptr<ShaderProgram> m_hitShaderProgramPtr;
+    
     //todo implement compute shader
     std::shared_ptr<ShaderProgram> m_computeShaderProgramPtr;
 
@@ -88,17 +87,10 @@ private:
     ShaderProgram::Location m_paintTextureLocation;
     ShaderProgram::Location m_uvTextureLocation;
 
-    FramebufferObject m_framebuffer;
     FramebufferObject m_uvFramebuffer;
     FramebufferObject m_depthFramebuffer;
-
-    GLuint m_quadVAO = 0;
-    GLuint m_quadVBO = 0;
-
 
     int m_width;
     int m_height;
 
-    std::shared_ptr<ShaderProgram> m_debugShaderProgramPtr;
-    ShaderProgram::Location m_debugPaintTextureLocation;
 };

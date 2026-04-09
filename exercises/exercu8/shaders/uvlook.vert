@@ -21,5 +21,6 @@ void main()
     WorldNormal = normalize(mat3(WorldMatrix) * VertexNormal);
     TexCoord = VertexTexCoord;
    
-    gl_Position = vec4(VertexTexCoord * 2.0 - 1.0, 0.0, 1.0); //WorldViewProjMatrix * vec4(VertexPosition, 1.0);
+    gl_Position = vec4(VertexTexCoord * 2.0 - 1.0, 0.0, 1.0); 
+    //gl_Position = WorldViewProjMatrix * vec4(VertexPosition + VertexNormal/5.0, 1.0);
 }
