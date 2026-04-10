@@ -11,7 +11,7 @@
 
 namespace Input
 {
-    float scrollY = 1.0f;
+    float scrollY = 20.0f;
 }
 
 Painter::Painter(){}
@@ -35,7 +35,7 @@ Painter::Painter(Window& window, Renderer& renderer)
 
 void Painter::Update(const Window& window, float deltaTime)
 {
-    UpdateBrushScale(0,0);
+    UpdateBrushScale();
     if (window.IsMouseButtonPressed(Window::MouseButton(GLFW_MOUSE_BUTTON_LEFT))) {
         std::cout << "fps: " << 1.f/deltaTime << std::endl;
         Paint(window);
@@ -43,23 +43,16 @@ void Painter::Update(const Window& window, float deltaTime)
     
 }
 
-void Painter::UpdateBrushScale(float deltaTime, float offset)
+void Painter::UpdateBrushScale()
 {
-    if (Input::scrollY >= 200.f) {
-        *m_brushRadius = 1.0f;
-        return;
-    }
-    if (Input::scrollY < 0.0f) {
-        *m_brushRadius = 0.0f;
-        return;
-    }
     *m_brushRadius = Input::scrollY/200.f;
 }
 
 void Painter::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    if (Input::scrollY + (float)yoffset >= 200.f) return;
+    if (Input::scrollY + (float)yoffset <= 0.0f) return;
     Input::scrollY += (float)yoffset;
-    
 }
 
 void Painter::Paint(const Window& window)

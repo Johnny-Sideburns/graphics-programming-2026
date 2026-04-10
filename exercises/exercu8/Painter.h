@@ -16,7 +16,7 @@ public:
 	Painter(Window& window, Renderer& renderer);
 	void Update(const Window& window, float deltaTime);
 	void Paint(const Window& window);
-	void UpdateBrushScale(float deltaTime, float offset);
+	void UpdateBrushScale();
 
 protected:
 
