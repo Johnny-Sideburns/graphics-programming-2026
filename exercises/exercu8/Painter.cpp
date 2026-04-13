@@ -11,7 +11,7 @@
 
 namespace Input
 {
-    float scrollY = 20.0f;
+    float scrollY = 10.0f;
 }
 
 Painter::Painter(){}
