@@ -7,19 +7,9 @@ layout (location = 3) in vec3 VertexBitangent;
 layout (location = 4) in vec2 VertexTexCoord;
 
 out vec2 TexCoord;
-out vec3 WorldPos;
-out vec3 WorldNormal;
-
-uniform mat4 WorldMatrix;
-uniform mat4 WorldViewMatrix;
-uniform mat4 WorldViewProjMatrix;
-
 
 void main()
 {
-    WorldPos = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
-    WorldNormal = normalize(mat3(WorldMatrix) * VertexNormal);
-
     TexCoord = VertexTexCoord;
 
     gl_Position = vec4(VertexTexCoord * 2.0 - 1.0, 0.0, 1.0);

@@ -9,7 +9,7 @@
 
 #include "iostream"
 
-PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int drawcallCollectionIndex)
+PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target, int drawcallCollectionIndex)
     : m_drawcallCollectionIndex(drawcallCollectionIndex),
     m_width(width), m_height(height)
 {   
@@ -17,9 +17,10 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int 
     m_mousePosition = std::make_shared<glm::vec2>(0.0f);
     m_brushWorldPos = std::make_shared<glm::vec3>(0.0f);
     m_brushWorldNormal = std::make_shared<glm::vec3>(0.0f);
-    m_brushRadius = std::make_shared<float>(0.1f);
+    m_brushRadius = std::make_shared<float>(0.0f);
+    m_grow = std::make_shared<float>(0.0f);
     m_paint = std::make_shared<bool>(false);
-    //m_textureIdMap = std::make_shared<TextureIdMap>();
+
 
     InitHitShaderProgram(renderer);
     std::cout << "brush shade init" << std::endl;
@@ -27,15 +28,21 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int 
     InitUVShaderProgram(renderer);
     std::cout << "uv shade init" << std::endl;
 
+    InitCanvasShaderProgram(renderer);
+    std::cout << "uv canvas init" << std::endl;
+
+    InitPaintShaderProgram(renderer);
+    std::cout << "uv canvas init" << std::endl;
+
     //InitComputeShaderProgram();
     //std::cout << "compute shade init" << std::endl;
+
+
 
     //other inits
     InitTextures(width, height);
     std::cout << "compute shade init" << std::endl;
 
-    //m_paintTexture = target;
-    //std::cout << "compute shade init" << std::endl;
 
     InitUVFramebuffer();
     std::cout << "compute shade init" << std::endl;
@@ -43,10 +50,16 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int 
     InitDepthFramebuffer();
     std::cout << "compute shade init" << std::endl;
 
+    m_paintTexture = target;
+    InitCanvasFramebuffer();
+    std::cout << "compute shade init" << std::endl;
+
+    InitPaintFramebuffer();
+    std::cout << "compute shade init" << std::endl;
+
     m_modelId = 10;
 
- 
-
+    /*
     int major = 0;
     int minor = 0;
 
@@ -64,6 +77,7 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, int 
     else {
         m_compute = false;
     }
+    */
 
 }
 
@@ -76,7 +90,6 @@ void PaintRenderPass::InitDepthFramebuffer()
     // Set the normals texture as color attachment 0
     m_depthFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_normalsTexture);
 
-    //m_depthFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color1, *m_idTexture);
 
     // Set the draw buffers used by the framebuffer (all attachments except depth)
     m_depthFramebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 1>(
@@ -97,7 +110,7 @@ void PaintRenderPass::InitUVFramebuffer()
     m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
 
     // Set the uv texture as color attachment 0
-    m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
+    m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_brushTexture);
 
     // Set the draw buffers used by the framebuffer (all attachments except depth)
     m_uvFramebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 1>(
@@ -108,6 +121,51 @@ void PaintRenderPass::InitUVFramebuffer()
     FramebufferObject::Unbind();
     assert(m_uvFramebuffer.IsValid());
 }
+
+void PaintRenderPass::InitCanvasFramebuffer()
+{
+    m_canvasFramebuffer.Bind();
+
+    m_canvasFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
+    std::cout << "snot 1" << std::endl;
+
+    // Set the uv texture as color attachment 0
+    m_canvasFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_canvasTexture);
+
+    // Set the draw buffers used by the framebuffer (all attachments except depth)
+    m_canvasFramebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 1>(
+        {
+            FramebufferObject::Attachment::Color0,
+
+        }));
+
+    FramebufferObject::Unbind();
+    assert(m_canvasFramebuffer.IsValid());
+}
+
+
+void PaintRenderPass::InitPaintFramebuffer()
+{
+    m_paintFramebuffer.Bind();
+
+    m_paintFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Depth, *m_depthTexture);
+    std::cout << "snot 1" << std::endl;
+
+    // Set the uv texture as color attachment 0
+    m_paintFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
+
+    // Set the draw buffers used by the framebuffer (all attachments except depth)
+    m_paintFramebuffer.SetDrawBuffers(std::array<FramebufferObject::Attachment, 1>(
+        {
+            FramebufferObject::Attachment::Color0,
+
+        }));
+
+    FramebufferObject::Unbind();
+    assert(m_paintFramebuffer.IsValid());
+}
+
+
 
 void PaintRenderPass::InitTextures(int width, int height)
 {
@@ -133,11 +191,18 @@ void PaintRenderPass::InitTextures(int width, int height)
     m_normalsTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     // Bind the paint texture ... this probably isn't nescesarry when it get's rebound later
-    m_paintTexture = std::make_shared<Texture2DObject>();
-    m_paintTexture->Bind();
-    m_paintTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
-    m_paintTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
-    m_paintTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
+    m_brushTexture = std::make_shared<Texture2DObject>();
+    m_brushTexture->Bind();
+    m_brushTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    m_brushTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_brushTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
+
+    m_canvasTexture = std::make_shared<Texture2DObject>();
+    m_canvasTexture->Bind();
+    m_canvasTexture->SetImage(0, width, height, TextureObject::FormatRGBA, TextureObject::InternalFormatRGBA8);
+    m_canvasTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
+    m_canvasTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
+
     /*
     //m_idTexture->SetImage(0, width, height, TextureObject::FormatR, TextureObject::InternalFormatR32UI);
     // Bind the id texture 1d Uint
@@ -172,8 +237,6 @@ void PaintRenderPass::InitHitShaderProgram(Renderer& renderer)
         {
             shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
             shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
-            //shaderProgram.SetUniform(IdLocation, GetModelId());
-            //shaderProgram.SetTexture(IdTextureLocation, 1, *GetIdTexture());
         },
         nullptr
         
@@ -196,6 +259,8 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
     ShaderProgram::Location mouseWorldPositionLocation = m_uvShaderProgramPtr->GetUniformLocation("BrushWorldPos");
     ShaderProgram::Location brushLocation = m_uvShaderProgramPtr->GetUniformLocation("BrushRadius");
     ShaderProgram::Location brushNormalLocation = m_uvShaderProgramPtr->GetUniformLocation("BrushNormal");
+    ShaderProgram::Location growLocation = m_uvShaderProgramPtr->GetUniformLocation("Grow");
+
 
     renderer.RegisterShaderProgram(m_uvShaderProgramPtr,
         [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
@@ -206,12 +271,75 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
             shaderProgram.SetUniform(mouseWorldPositionLocation, *GetBrushWorldPos());
             shaderProgram.SetUniform(brushLocation, *GetBrushRadius());
             shaderProgram.SetUniform(brushNormalLocation, *GetBrushWorldNormal());
+            shaderProgram.SetUniform(growLocation, *GetGrowFloat());
+
         },
         nullptr
     );
 
 }
 
+void PaintRenderPass::InitPaintShaderProgram(Renderer& renderer)
+{
+    // Load and build shader
+    Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/canvas.vert");
+    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/paint.frag");
+    m_paintShaderProgramPtr = std::make_shared<ShaderProgram>();
+    m_paintShaderProgramPtr->Build(vertexShader, fragmentShader);
+
+    // Get transform related uniform locations
+    ShaderProgram::Location worldMatrixLocation = m_paintShaderProgramPtr->GetUniformLocation("WorldMatrix");
+    //ShaderProgram::Location worldViewMatrixLocation = m_paintShaderProgramPtr->GetUniformLocation("WorldViewMatrix");
+    ShaderProgram::Location worldViewProjMatrixLocation = m_paintShaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
+
+    ShaderProgram::Location CanvasLocation = m_paintShaderProgramPtr->GetUniformLocation("CanvasTexture");
+    ShaderProgram::Location BrushLocation = m_paintShaderProgramPtr->GetUniformLocation("BrushTexture");
+
+
+    renderer.RegisterShaderProgram(m_paintShaderProgramPtr,
+        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
+        {
+            shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
+            shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
+            shaderProgram.SetTexture(BrushLocation, 0, *GetBrushTexture());
+            shaderProgram.SetTexture(CanvasLocation, 1, *GetCanvasTexture());
+        },
+        nullptr
+    );
+
+}
+
+void PaintRenderPass::InitCanvasShaderProgram(Renderer& renderer)
+{
+    // Load and build shader
+    Shader vertexShader = ShaderLoader(Shader::VertexShader).Load("shaders/canvas.vert");
+    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load("shaders/canvas.frag");
+    m_canvasShaderProgramPtr = std::make_shared<ShaderProgram>();
+    m_canvasShaderProgramPtr->Build(vertexShader, fragmentShader);
+
+    // Get transform related uniform locations
+    ShaderProgram::Location worldMatrixLocation = m_canvasShaderProgramPtr->GetUniformLocation("WorldMatrix");
+    //ShaderProgram::Location worldViewMatrixLocation = m_canvasShaderProgramPtr->GetUniformLocation("WorldViewMatrix");
+    ShaderProgram::Location worldViewProjMatrixLocation = m_canvasShaderProgramPtr->GetUniformLocation("WorldViewProjMatrix");
+
+    ShaderProgram::Location PaintLocation = m_canvasShaderProgramPtr->GetUniformLocation("PaintTexture");
+    ShaderProgram::Location BrushLocation = m_canvasShaderProgramPtr->GetUniformLocation("BrushTexture");
+    
+
+    renderer.RegisterShaderProgram(m_canvasShaderProgramPtr,
+        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
+        {
+            shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
+            shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
+            shaderProgram.SetTexture(BrushLocation, 0, *GetBrushTexture());
+            shaderProgram.SetTexture(PaintLocation, 1, *GetPaintTexture());
+        },
+        nullptr
+    );
+
+}
+
+/*
 void PaintRenderPass::InitComputeShaderProgram()
 {
     // Load and build shader
@@ -224,25 +352,33 @@ void PaintRenderPass::InitComputeShaderProgram()
     m_paintTextureLocation = m_computeShaderProgramPtr->GetUniformLocation("PaintTexture");
 
 }
-
+*/
 void PaintRenderPass::Render()
 {
     if (*m_paint) {
         Paint();
         *m_paint = false;
+        *m_grow = 0.0;
     }
     
-
+    //DebugDraw();
     FramebufferObject::Unbind();
 
 }
 
 void PaintRenderPass::Paint()
 {
+    std::cout << "1" << std::endl;
     Renderer& renderer = GetRenderer();
-    SetBrushWorldPos(renderer);
-    RenderUV(renderer);
+    std::cout << "2" << std::endl;
 
+    SetBrushWorldPos(renderer);
+    std::cout << "3" << std::endl;
+
+    RenderUV(renderer);
+    std::cout << "4" << std::endl;
+    RenderCanvas(renderer);
+    RenderPaint(renderer);
 }
 
 //The render uv pass
@@ -252,22 +388,83 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
 
     m_uvFramebuffer.Bind();
     m_uvShaderProgramPtr->Use();
-
-    //renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
     
+    renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
+
+    glDisable(GL_CULL_FACE);
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {   
+        /*
         std::shared_ptr<TextureObject> tex;
-        drawcallInfo.material.GetUniformValue("ColorTexture", tex);
+        drawcallInfo.material.GetUniformValue("PaintTexture", tex);
         m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
         if (!m_paintTexture) continue;
         m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
+        */
+        
         renderer.UpdateTransforms(m_uvShaderProgramPtr, drawcallInfo.worldMatrixIndex);
         drawcallInfo.vao.Bind();
         drawcallInfo.drawcall.Draw();
       
     }
+    glEnable(GL_CULL_FACE);
 }
+
+void PaintRenderPass::RenderCanvas(Renderer& renderer)
+{
+    const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
+
+    m_canvasFramebuffer.Bind();
+    m_canvasShaderProgramPtr->Use();
+
+    renderer.GetDevice().Clear(false, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
+
+    glDisable(GL_CULL_FACE);
+    for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
+    {
+        /*
+        std::shared_ptr<TextureObject> tex;
+        drawcallInfo.material.GetUniformValue("PaintTexture", tex);
+        m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
+        if (!m_paintTexture) continue;
+        m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
+        */
+
+        renderer.UpdateTransforms(m_canvasShaderProgramPtr, drawcallInfo.worldMatrixIndex);
+        drawcallInfo.vao.Bind();
+        drawcallInfo.drawcall.Draw();
+
+    }
+    glEnable(GL_CULL_FACE);
+}
+void PaintRenderPass::RenderPaint(Renderer& renderer)
+{
+    const auto& drawcallCollection = renderer.GetDrawcalls(m_drawcallCollectionIndex);
+
+    m_paintFramebuffer.Bind();
+    m_paintShaderProgramPtr->Use();
+
+    renderer.GetDevice().Clear(false, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
+
+    glDisable(GL_CULL_FACE);
+    for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
+    {
+        /*
+        std::shared_ptr<TextureObject> tex;
+        drawcallInfo.material.GetUniformValue("PaintTexture", tex);
+        m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
+        if (!m_paintTexture) continue;
+        m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
+        */
+
+        renderer.UpdateTransforms(m_paintShaderProgramPtr, drawcallInfo.worldMatrixIndex);
+        drawcallInfo.vao.Bind();
+        drawcallInfo.drawcall.Draw();
+
+    }
+    glEnable(GL_CULL_FACE);
+}
+
 
 //renderpass for getting mouse position and normal from depth and normal -texture respectively
 void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
@@ -330,6 +527,22 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
 
 }
 
+void PaintRenderPass::DebugDraw()
+{
+    m_paintFramebuffer.Bind(FramebufferObject::Target::Read);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glViewport(0, 0, m_width, m_height);
+
+    glBlitFramebuffer(
+        0, 0, m_width, m_height,
+        0, 0, m_width, m_height,
+        GL_COLOR_BUFFER_BIT,
+        GL_NEAREST
+    );
+}
+
+
+/*
 
 //cpu painting from uv's to texture
 void PaintRenderPass::ApplyBrushToPaintTextureCPU()
@@ -369,17 +582,4 @@ void PaintRenderPass::ApplyBrushToPaintTextureCPU()
         glTexSubImage2D(GL_TEXTURE_2D, 0, p.x, p.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
     }
 }
-
-void PaintRenderPass::DebugDraw()
-{
-    m_uvFramebuffer.Bind(FramebufferObject::Target::Read);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glViewport(0, 0, m_width, m_height);
-
-    glBlitFramebuffer(
-        0, 0, m_width, m_height,
-        0, 0, m_width, m_height,
-        GL_COLOR_BUFFER_BIT,
-        GL_NEAREST
-    );
-}
+*/

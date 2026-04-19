@@ -14,7 +14,7 @@ class Renderer;
 class PaintRenderPass : public RenderPass
 {
 public:
-    PaintRenderPass(int width, int height, Renderer& renderer, int drawcallCollectionIndex = 0);
+    PaintRenderPass(int width, int height, Renderer& renderer, std::shared_ptr<Texture2DObject> target , int drawcallCollectionIndex = 0);
 
     void Render() override;
 
@@ -23,23 +23,31 @@ public:
     const std::shared_ptr<Texture2DObject> GetUVTexture() const { return m_uvTexture; }
     const std::shared_ptr<Texture2DObject> GetNormalsTexture() const { return m_normalsTexture; }
     const std::shared_ptr<Texture2DObject> GetIdTexture() const { return m_idTexture; }
+    const std::shared_ptr<Texture2DObject> GetBrushTexture() const { return m_brushTexture; }
+    const std::shared_ptr<Texture2DObject> GetCanvasTexture() const { return m_canvasTexture; }
 
     const std::shared_ptr<glm::vec3> GetBrushWorldPos() const { return m_brushWorldPos; }
     const std::shared_ptr<glm::vec3> GetBrushWorldNormal() const { return m_brushWorldNormal; }
     const std::shared_ptr<glm::vec2> GetMousePosPtr() const { return m_mousePosition; }
     const std::shared_ptr<float> GetBrushRadius() const { return m_brushRadius; }
+    const std::shared_ptr<float> GetGrowFloat() const { return m_grow; }
     const std::shared_ptr<bool> GetPaintPtr() const { return m_paint; }
     const unsigned int GetModelId() const { return m_modelId; }
 
 private:
     void Paint();
-    void SetBrushWorldPos(Renderer& renderer);
 
-    //void InitShaderProgram(Renderer& renderer);
+    void InitCanvasShaderProgram(Renderer& renderer);
+    void InitPaintShaderProgram(Renderer& renderer);
     void InitUVShaderProgram(Renderer& renderer);
     void InitHitShaderProgram(Renderer& renderer);
 
+    void SetBrushWorldPos(Renderer& renderer);
     void RenderUV(Renderer& renderer);
+    void RenderCanvas(Renderer& renderer);
+    void RenderPaint(Renderer& renderer);
+
+
     void RenderBrush();
 
     void ApplyBrushToPaintTextureCPU();
@@ -47,8 +55,12 @@ private:
     void InitComputeShaderProgram();
 
     void InitTextures(int width, int height);
+    
     void InitUVFramebuffer();
     void InitDepthFramebuffer();
+    void InitCanvasFramebuffer();
+    void InitPaintFramebuffer();
+
     void DebugDraw();
     
     void InitDebugShaderProgram(Renderer& renderer);
@@ -62,14 +74,19 @@ private:
 
     std::shared_ptr<Texture2DObject> m_depthTexture;
     std::shared_ptr<Texture2DObject> m_paintTexture;
+    std::shared_ptr<Texture2DObject> m_brushTexture;
     std::shared_ptr<Texture2DObject> m_uvTexture;
     std::shared_ptr<Texture2DObject> m_normalsTexture;
     std::shared_ptr<Texture2DObject> m_idTexture;
+    std::shared_ptr<Texture2DObject> m_canvasTexture;
     
     std::shared_ptr<TextureIdMap> m_textureIdMap;
+
     std::shared_ptr<ShaderProgram> m_uvShaderProgramPtr;
     std::shared_ptr<ShaderProgram> m_hitShaderProgramPtr;
-    
+    std::shared_ptr<ShaderProgram> m_canvasShaderProgramPtr;
+    std::shared_ptr<ShaderProgram> m_paintShaderProgramPtr;
+
     //todo implement compute shader
     std::shared_ptr<ShaderProgram> m_computeShaderProgramPtr;
 
@@ -79,6 +96,7 @@ private:
 
     std::shared_ptr<glm::vec2> m_mousePosition;
     std::shared_ptr<float> m_brushRadius;
+    std::shared_ptr<float> m_grow;
     std::shared_ptr<bool> m_paint;
     bool m_compute;
     unsigned int m_modelId;
@@ -89,6 +107,8 @@ private:
 
     FramebufferObject m_uvFramebuffer;
     FramebufferObject m_depthFramebuffer;
+    FramebufferObject m_canvasFramebuffer;
+    FramebufferObject m_paintFramebuffer;
 
     int m_width;
     int m_height;

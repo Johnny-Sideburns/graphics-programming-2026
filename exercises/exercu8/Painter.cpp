@@ -15,17 +15,18 @@ namespace Input
 }
 
 Painter::Painter(){}
-Painter::Painter(Window& window, Renderer& renderer)
+Painter::Painter(Window& window, Renderer& renderer, std::shared_ptr<Texture2DObject> target)
 {
     //InitializeShaderProgram(renderer);
     int width, height;
     window.GetDimensions(width, height);
-    m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer);
+    m_paintRenderPass = std::make_unique<PaintRenderPass>(width, height, renderer, target);
     m_depthTexture = m_paintRenderPass->GetDepthTexture();
     m_paintTexture = m_paintRenderPass->GetPaintTexture();
     m_paint = m_paintRenderPass->GetPaintPtr();
     m_brushRadius = m_paintRenderPass->GetBrushRadius();
     m_mousePosition = m_paintRenderPass->GetMousePosPtr();
+    m_grow = m_paintRenderPass->GetGrowFloat();
     renderer.AddRenderPass(std::move(m_paintRenderPass));
 
     glfwSetScrollCallback(window.GetInternalWindow(), scroll_callback);
@@ -40,7 +41,12 @@ void Painter::Update(const Window& window, float deltaTime)
         std::cout << "fps: " << 1.f/deltaTime << std::endl;
         Paint(window);
     }
-    
+    if (window.IsKeyPressed(GLFW_KEY_P)) {
+        *m_grow = 0.003;
+        *m_paint = true;
+    }
+
+
 }
 
 void Painter::UpdateBrushScale()

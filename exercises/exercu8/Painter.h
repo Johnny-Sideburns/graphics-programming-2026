@@ -13,7 +13,7 @@ class Painter
 {
 public:
 	Painter();
-	Painter(Window& window, Renderer& renderer);
+	Painter(Window& window, Renderer& renderer, std::shared_ptr<Texture2DObject> target);
 	void Update(const Window& window, float deltaTime);
 	void Paint(const Window& window);
 	void UpdateBrushScale();
@@ -26,6 +26,7 @@ private:
 	std::shared_ptr<Texture2DObject> m_paintTexture;
 	std::shared_ptr<bool> m_paint;
 	std::shared_ptr<float> m_brushRadius;
+	std::shared_ptr<float> m_grow;
 
 	float m_delay = 0;
 	float m_radius = 0.5f;

@@ -8,9 +8,14 @@ out vec4 FragColor;
 uniform vec3 BrushWorldPos;
 uniform vec3 BrushNormal;
 uniform float BrushRadius;
+uniform float Grow;
 
 void main()
 {
+    if (Grow > 0.0){
+        FragColor = vec4(0.0, Grow, 0.0, 1.0);
+        return;
+    }
     vec3 toPoint = WorldPos - BrushWorldPos;
 
     float height = dot(toPoint, BrushNormal);
@@ -34,6 +39,9 @@ void main()
 
  
     else {
-        FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+        //vec3 color = texture(PaintTexture, TexCoord).rgb + vec3(0.0,0.01,0.0);
+        FragColor = vec4(0.01, 0.0, 0.0, 1.0);
+        //FragColor = vec4(color, 1.0);
+        //FragColor = vec4(TexCoord, 0.0, 1.0);
     }
 }

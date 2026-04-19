@@ -16,14 +16,20 @@ out vec2 TexCoord;
 uniform mat4 WorldMatrix;
 uniform mat4 ViewProjMatrix;
 
+uniform sampler2D PaintTexture;
+uniform sampler2D ColorTexture;
+
 void main()
 {
+	float value = texture(ColorTexture, VertexTexCoord).r * texture(PaintTexture, VertexTexCoord).g;
 	// vertex position in world space (for lighting computation)
-	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
+	WorldPosition = (WorldMatrix * vec4(VertexPosition + VertexNormal * 0.1 * value, 1.0)).xyz;
+	//WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
 
+	
+	
 	// normal in world space (for lighting computation)
 	WorldNormal = (WorldMatrix * vec4(VertexNormal, 0.0)).xyz;
-
 	// tangent in world space (for lighting computation)
 	WorldTangent = (WorldMatrix * vec4(VertexTangent, 0.0)).xyz;
 

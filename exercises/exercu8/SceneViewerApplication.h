@@ -53,6 +53,6 @@ private:
     std::shared_ptr<Material> m_defaultMaterial;
 
     std::shared_ptr<Painter> m_painter;
-    std::shared_ptr<Texture2DObject> m_tex2D;
+    std::shared_ptr<Texture2DObject> m_target;
 
 };
