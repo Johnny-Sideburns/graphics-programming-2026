@@ -128,8 +128,25 @@ void SceneViewerApplication::InitializeMaterial()
     fragmentShaderPaths.push_back("shaders/default_pbr.frag");
     Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
 
-    std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
+    /*
     shaderProgramPtr->Build(vertexShader, fragmentShader);
+    */
+
+
+    std::vector<const char*> geometryPaths;
+    geometryPaths.push_back("shaders/version330.glsl");
+    geometryPaths.push_back("shaders/hair_geo.geom");
+    std::cout << "hello" << std::endl;
+    Shader geometryShader = ShaderLoader(Shader::GeometryShader).Load(geometryPaths);
+
+    std::cout << "hello" << std::endl;
+    std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
+    shaderProgramPtr->Build(
+        vertexShader,
+        fragmentShader,
+        geometryShader
+    );
+
 
     // Get transform related uniform locations
     ShaderProgram::Location cameraPositionLocation = shaderProgramPtr->GetUniformLocation("CameraPosition");
@@ -222,8 +239,10 @@ void SceneViewerApplication::InitializeModels()
     std::shared_ptr<Model> chestModel2 = loader.LoadShared("models/treasure_chest/treasure_chest.obj");
     m_scene.AddSceneNode(std::make_shared<SceneModel>("treasure chest2", chestModel2));
 
+    std::shared_ptr<Model> headModel = loader.LoadShared("models/hair/hairstrand.obj");
     */
     std::shared_ptr<Model> headModel = loader.LoadShared("models/head3/headdy.obj");
+
     m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
 
     ShaderProgram::Location paintLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("PaintTexture");

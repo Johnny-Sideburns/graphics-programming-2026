@@ -23,8 +23,8 @@ void main()
 {
 	float value = texture(ColorTexture, VertexTexCoord).r * texture(PaintTexture, VertexTexCoord).g;
 	// vertex position in world space (for lighting computation)
-	WorldPosition = (WorldMatrix * vec4(VertexPosition + VertexNormal * 0.1 * value, 1.0)).xyz;
-	//WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
+	//WorldPosition = (WorldMatrix * vec4(VertexPosition + VertexNormal * 0.1 * value, 1.0)).xyz;
+	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
 
 	
 	

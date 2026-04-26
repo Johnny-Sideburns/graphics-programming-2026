@@ -339,20 +339,6 @@ void PaintRenderPass::InitCanvasShaderProgram(Renderer& renderer)
 
 }
 
-/*
-void PaintRenderPass::InitComputeShaderProgram()
-{
-    // Load and build shader
-    Shader computeShader = ShaderLoader(Shader::ComputeShader).Load("shaders/paint.comp");
-    m_computeShaderProgramPtr = std::make_shared<ShaderProgram>();
-    m_computeShaderProgramPtr->Build(computeShader);
-
-    // Get transform related uniform locations
-    m_uvTextureLocation = m_computeShaderProgramPtr->GetUniformLocation("UVTexture");
-    m_paintTextureLocation = m_computeShaderProgramPtr->GetUniformLocation("PaintTexture");
-
-}
-*/
 void PaintRenderPass::Render()
 {
     if (*m_paint) {
@@ -368,15 +354,10 @@ void PaintRenderPass::Render()
 
 void PaintRenderPass::Paint()
 {
-    std::cout << "1" << std::endl;
     Renderer& renderer = GetRenderer();
-    std::cout << "2" << std::endl;
 
     SetBrushWorldPos(renderer);
-    std::cout << "3" << std::endl;
-
     RenderUV(renderer);
-    std::cout << "4" << std::endl;
     RenderCanvas(renderer);
     RenderPaint(renderer);
 }
@@ -407,7 +388,7 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
         drawcallInfo.drawcall.Draw();
       
     }
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 }
 
 void PaintRenderPass::RenderCanvas(Renderer& renderer)
@@ -493,7 +474,7 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     
     //bind the depthbuffer
     //m_depthFramebuffer.Bind();
-
+    /*
     //read attachment attachment 0 
     glReadBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -502,6 +483,7 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     glReadPixels(x, y, 1, 1, GL_RGBA, GL_FLOAT, pixel);
 
     *m_brushWorldNormal = glm::vec3(pixel[0], pixel[1], pixel[2]);
+    */
 
     glReadBuffer(GL_NONE);
 
@@ -540,46 +522,3 @@ void PaintRenderPass::DebugDraw()
         GL_NEAREST
     );
 }
-
-
-/*
-
-//cpu painting from uv's to texture
-void PaintRenderPass::ApplyBrushToPaintTextureCPU()
-{
-    if (m_paintTexture == nullptr) return;
-    // Bind UV mask framebuffer for read
-    glBindFramebuffer(GL_FRAMEBUFFER, std::as_const(m_uvFramebuffer).GetHandle());
-
-    std::vector<glm::vec2> brushUVs(m_width * m_height);
-    glReadPixels(0, 0, m_width, m_height, GL_RG, GL_FLOAT, brushUVs.data());
-
-    // Collect only pixels with UVs inside the circle
-    std::vector<glm::vec2> pixelsToPaint;
-    for (int i = 0; i < m_width * m_height; ++i) {
-        glm::vec2 uv = brushUVs[i];
-        if (uv != glm::vec2(0.0f)) { // or some small epsilon
-            pixelsToPaint.push_back(uv);
-        }
-    }
-
-    //Map UVs to paint texture pixels
-    std::vector<glm::ivec2> texPixels;
-    int texWidth = m_width; // m_paintTexture->GetWidth();
-    int texHeight = m_height; //m_paintTexture->GetHeight();
-
-    for (auto uv : pixelsToPaint) {
-        int x = static_cast<int>(uv.x * texWidth);
-        int y = static_cast<int>(uv.y * texHeight);
-        texPixels.push_back(glm::ivec2(x, y));
-    }
-
-    //CPU write using glTexSubImage2D
-    glBindTexture(GL_TEXTURE_2D, std::as_const(*m_paintTexture).GetHandle());
-
-    for (auto p : texPixels) {
-        unsigned char color[4] = { 255, 0, 0, 255 }; // brush color
-        glTexSubImage2D(GL_TEXTURE_2D, 0, p.x, p.y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, color);
-    }
-}
-*/
