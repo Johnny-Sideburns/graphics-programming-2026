@@ -19,7 +19,7 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
     m_brushWorldNormal = std::make_shared<glm::vec3>(0.0f);
     m_brushRadius = std::make_shared<float>(0.0f);
     m_grow = std::make_shared<float>(0.0f);
-    m_trimLength = std::make_shared<float>(0.2f);
+    m_trimLength = std::make_shared<float>(0.0f);
     m_paint = std::make_shared<bool>(false);
     m_mirror = std::make_shared<int>(0);
 
