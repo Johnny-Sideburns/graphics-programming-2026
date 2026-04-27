@@ -95,8 +95,8 @@ void main()
     if (value * grow > 0.0)
     {
         // --- 2. strands ---
-    int strandCount = 2;
-    int segments = 8;
+    int strandCount = 1;
+    int segments = 6;
     float width = 0.0003;
 
     for (int s = 0; s < strandCount; s++)

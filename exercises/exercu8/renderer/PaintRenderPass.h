@@ -31,7 +31,9 @@ public:
     const std::shared_ptr<glm::vec2> GetMousePosPtr() const { return m_mousePosition; }
     const std::shared_ptr<float> GetBrushRadius() const { return m_brushRadius; }
     const std::shared_ptr<float> GetGrowFloat() const { return m_grow; }
+    const std::shared_ptr<float> GetTrimFloat() const { return m_trimLength; }
     const std::shared_ptr<bool> GetPaintPtr() const { return m_paint; }
+    const std::shared_ptr<int> GetMirror() const { return m_mirror; }
     const unsigned int GetModelId() const { return m_modelId; }
 
 private:
@@ -48,11 +50,6 @@ private:
     void RenderPaint(Renderer& renderer);
 
 
-    void RenderBrush();
-
-    void ApplyBrushToPaintTextureCPU();
-
-    void InitComputeShaderProgram();
 
     void InitTextures(int width, int height);
     
@@ -62,12 +59,7 @@ private:
     void InitPaintFramebuffer();
 
     void DebugDraw();
-    
-    void InitDebugShaderProgram(Renderer& renderer);
 
-    void InitFullscreenQuad();
-    void RenderBrushMask();
-    void PaintComputeGPU();
 
 private:
     int m_drawcallCollectionIndex;
@@ -97,7 +89,11 @@ private:
     std::shared_ptr<glm::vec2> m_mousePosition;
     std::shared_ptr<float> m_brushRadius;
     std::shared_ptr<float> m_grow;
+    std::shared_ptr<float> m_trimLength;
     std::shared_ptr<bool> m_paint;
+    std::shared_ptr<int> m_mirror;
+
+
     bool m_compute;
     unsigned int m_modelId;
     unsigned int m_texId;

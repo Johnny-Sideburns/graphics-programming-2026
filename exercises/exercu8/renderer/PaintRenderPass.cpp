@@ -19,7 +19,9 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
     m_brushWorldNormal = std::make_shared<glm::vec3>(0.0f);
     m_brushRadius = std::make_shared<float>(0.0f);
     m_grow = std::make_shared<float>(0.0f);
+    m_trimLength = std::make_shared<float>(0.2f);
     m_paint = std::make_shared<bool>(false);
+    m_mirror = std::make_shared<int>(0);
 
 
     InitHitShaderProgram(renderer);
@@ -324,15 +326,19 @@ void PaintRenderPass::InitCanvasShaderProgram(Renderer& renderer)
 
     ShaderProgram::Location PaintLocation = m_canvasShaderProgramPtr->GetUniformLocation("PaintTexture");
     ShaderProgram::Location BrushLocation = m_canvasShaderProgramPtr->GetUniformLocation("BrushTexture");
-    
+    ShaderProgram::Location mirrorLocation = m_canvasShaderProgramPtr->GetUniformLocation("Mirror");
+    ShaderProgram::Location lengthLocation = m_canvasShaderProgramPtr->GetUniformLocation("TrimLength");
 
     renderer.RegisterShaderProgram(m_canvasShaderProgramPtr,
         [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
         {
             shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
             shaderProgram.SetUniform(worldViewProjMatrixLocation, camera.GetViewProjectionMatrix() * worldMatrix);
+            shaderProgram.SetUniform(mirrorLocation, *GetMirror());
+            shaderProgram.SetUniform(lengthLocation, *GetTrimFloat());
             shaderProgram.SetTexture(BrushLocation, 0, *GetBrushTexture());
             shaderProgram.SetTexture(PaintLocation, 1, *GetPaintTexture());
+
         },
         nullptr
     );

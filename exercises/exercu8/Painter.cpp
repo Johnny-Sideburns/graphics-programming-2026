@@ -38,9 +38,9 @@ Painter::Painter(Window& window, Renderer& renderer, std::shared_ptr<Texture2DOb
 void Painter::Update(const Window& window, float deltaTime)
 {
     UpdateBrushScale();
+    std::cout << "fps: " << 1.f/deltaTime << std::endl;
 
     if (window.IsMouseButtonPressed(Window::MouseButton(GLFW_MOUSE_BUTTON_LEFT))) {
-        std::cout << "fps: " << 1.f/deltaTime << std::endl;
         Paint(window);
     }
     //press p to grow beard
