@@ -17,6 +17,7 @@ out vec2 g_TexCoord;
 out float g_IsHair;
 
 uniform mat4 ViewProjMatrix;
+uniform vec3 CameraPosition;
 
 uniform sampler2D PaintTexture;
 uniform sampler2D ColorTexture;
@@ -34,8 +35,8 @@ float random (vec2 st)
 // random point inside current triangle
 vec3 getStrandPos(int s, out vec2 uv)
 {
-    float r1 = random(WorldPosition[0].xy + float(s));
-    float r2 = random(WorldPosition[1].xy + float(s)*2.0);
+    float r1 = random(TexCoord[0].xy + float(s));
+    float r2 = random(TexCoord[1].xy + float(s)*2.0);
 
     float u = r1;
     float v = r2 * (1.0 - u);
@@ -95,9 +96,9 @@ void main()
     if (value * grow > 0.0)
     {
         // --- 2. strands ---
-    int strandCount = 1;
+    int strandCount = 3;
     int segments = 6;
-    float width = 0.0003;
+    float width = 0.0005;
 
     for (int s = 0; s < strandCount; s++)
     {
@@ -128,6 +129,7 @@ void main()
         vec3 p2 = pos + normalize(normal + gravity * 0.5) * (height * 0.6) + bendDir * 0.05 * r;
         vec3 p3 = pos + normalize(normal + gravity) * height;
 
+
         // --- build strand ---
         for (int i = 0; i <= segments; i++)
         {
@@ -139,8 +141,9 @@ void main()
             vec3 next = bezier(p0, p1, p2, p3, t + dt);
             vec3 dir = normalize(next - center);
 
-            vec3 up = abs(dir.y) > 0.9 ? vec3(1,0,0) : vec3(0,1,0);
-            vec3 side = normalize(cross(dir, normal)) * width;
+            vec3 viewDir = normalize( center - CameraPosition);
+            vec3 side    = normalize(cross(viewDir, dir)) * width;
+            vec3 normal  = normalize(cross(side, dir));
 
             vec3 left  = center - side;
             vec3 right = center + side;

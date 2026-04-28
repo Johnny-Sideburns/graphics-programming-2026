@@ -25,7 +25,11 @@ private:
 	std::shared_ptr<bool> m_paint;
 	std::shared_ptr<float> m_brushRadius;
 	std::shared_ptr<float> m_grow;
+	std::shared_ptr<float> m_trimLength;
+	std::shared_ptr<int> m_mirror;
+
 	std::shared_ptr<glm::vec2> m_mousePosition;
+	bool m_mPressed;
 
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 

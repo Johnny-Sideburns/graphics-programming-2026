@@ -25,6 +25,10 @@ Painter::Painter(Window& window, Renderer& renderer, std::shared_ptr<Texture2DOb
     m_brushRadius = m_paintRenderPass->GetBrushRadius();
     m_mousePosition = m_paintRenderPass->GetMousePosPtr();
     m_grow = m_paintRenderPass->GetGrowFloat();
+    m_mirror = m_paintRenderPass->GetMirror();
+    m_trimLength = m_paintRenderPass->GetTrimFloat();
+
+    m_mPressed = false;
 
     //add the paint render pass the the renderer
     renderer.AddRenderPass(std::move(m_paintRenderPass));
@@ -49,7 +53,43 @@ void Painter::Update(const Window& window, float deltaTime)
         *m_grow = 0.003;
         *m_paint = true;
     }
+    if (window.IsKeyPressed(GLFW_KEY_M)) {
+        m_mPressed = true;
+    }
+    if (window.IsKeyReleased(GLFW_KEY_M) && m_mPressed) {
+        if (*m_mirror == 1) *m_mirror = 0;
+        else *m_mirror = 1;
+        m_mPressed = false;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_1)) {
+        *m_trimLength = 0.0;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_2)) {
+        *m_trimLength = 0.05;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_3)) {
+        *m_trimLength = 0.1;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_4)) {
+        *m_trimLength = 0.15;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_5)) {
+        *m_trimLength = 0.2;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_6)) {
+        *m_trimLength = 0.3;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_7)) {
+        *m_trimLength = 0.4;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_8)) {
+        *m_trimLength = 0.5;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_9)) {
+        *m_trimLength = 0.6;
+    }
 }
+
 
 void Painter::UpdateBrushScale()
 {

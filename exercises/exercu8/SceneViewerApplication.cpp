@@ -128,10 +128,6 @@ void SceneViewerApplication::InitializeMaterial()
     fragmentShaderPaths.push_back("shaders/default_pbr.frag");
     Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
 
-    /*
-    shaderProgramPtr->Build(vertexShader, fragmentShader);
-    */
-
 
     std::vector<const char*> geometryPaths;
     geometryPaths.push_back("shaders/version330.glsl");
@@ -141,11 +137,7 @@ void SceneViewerApplication::InitializeMaterial()
 
     std::cout << "hello" << std::endl;
     std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
-    shaderProgramPtr->Build(
-        vertexShader,
-        fragmentShader,
-        geometryShader
-    );
+    shaderProgramPtr->Build(vertexShader, fragmentShader, geometryShader);
 
 
     // Get transform related uniform locations
