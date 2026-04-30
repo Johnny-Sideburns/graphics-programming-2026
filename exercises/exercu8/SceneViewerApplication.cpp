@@ -43,6 +43,7 @@ void SceneViewerApplication::Initialize()
     InitializeModels();
     InitializeRenderer();
 
+    // create the painter
     m_painter = std::make_shared<Painter>(GetMainWindow(), m_renderer, m_target);
 
 }
@@ -213,30 +214,14 @@ void SceneViewerApplication::InitializeModels()
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::DiffuseTexture, "ColorTexture");
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::NormalTexture, "NormalTexture");
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::SpecularTexture, "SpecularTexture");
-    //loader.SetMaterialProperty(ModelLoader::MaterialProperty::PaintTexture, "PaintTexture");
 
-    // Load models
-    /*
-    std::shared_ptr<Model> headModel = loader.LoadShared("models/treasure_chest/treasure_chest.obj");
-    m_scene.AddSceneNode(std::make_shared<SceneModel>("treasure chest", headModel));
-
-    //std::shared_ptr<Model> cameraModel = loader.LoadShared("models/camera/camera.obj");
-    //m_scene.AddSceneNode(std::make_shared<SceneModel>("camera model", cameraModel));
-
-    //std::shared_ptr<Model> teaSetModel = loader.LoadShared("models/tea_set/tea_set.obj");
-    //m_scene.AddSceneNode(std::make_shared<SceneModel>("tea set", teaSetModel));
-
-    //std::shared_ptr<Model> clockModel = loader.LoadShared("models/alarm_clock/alarm_clock.obj");
-    //m_scene.AddSceneNode(std::make_shared<SceneModel>("alarm clock", clockModel));
-    std::shared_ptr<Model> chestModel2 = loader.LoadShared("models/treasure_chest/treasure_chest.obj");
-    m_scene.AddSceneNode(std::make_shared<SceneModel>("treasure chest2", chestModel2));
-
-    std::shared_ptr<Model> headModel = loader.LoadShared("models/hair/hairstrand.obj");
-    */
-    std::shared_ptr<Model> headModel = loader.LoadShared("models/head3/headdy.obj");
-
+    // Load model
+    std::shared_ptr<Model> headModel = loader.LoadShared("models/head/headdy.obj");
     m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
 
+    // Add 'Extra Textures'
+
+    // PaintTexture is an empty texture that gets painted onto in the PaintRenderPass
     ShaderProgram::Location paintLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("PaintTexture");
 
     std::shared_ptr<Texture2DObject> paintTexture = std::make_shared<Texture2DObject>();
@@ -247,18 +232,21 @@ void SceneViewerApplication::InitializeModels()
     paintTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
     paintTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-
+    // Hair'grow'Texture is a texture that outlines hair and beard grow zones on the mesh
+    ShaderProgram::Location hairLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("HairTexture");
+    std::shared_ptr<Texture2DObject> hairGrowthTexture = std::make_shared<Texture2DObject>(loader.GetTexture2DLoader().Load("models/head/HairZones.png"));
+ 
+    std::cout << "Hair location: " << hairLocation << std::endl;
     unsigned int count = headModel->GetMaterialCount();
     for (int i = 0; i < count; i++) {
         headModel->GetMaterial(i).SetUniformValue(paintLocation, paintTexture);
+        headModel->GetMaterial(i).SetUniformValue(hairLocation, hairGrowthTexture);
 
     }
     m_defaultMaterial->SetUniformValue(paintLocation, paintTexture);
+    m_defaultMaterial->SetUniformValue(hairLocation, hairGrowthTexture);
 
     m_target = paintTexture;
-    //std::shared_ptr<TextureObject> tex;
-    //chestModel->GetMaterial(0).GetUniformValue("ColorTexture", tex);
-    //m_target = std::dynamic_pointer_cast<Texture2DObject>(tex);
 
 }
 

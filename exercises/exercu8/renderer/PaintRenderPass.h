@@ -31,6 +31,7 @@ public:
     const std::shared_ptr<glm::vec2> GetMousePosPtr() const { return m_mousePosition; }
     const std::shared_ptr<float> GetBrushRadius() const { return m_brushRadius; }
     const std::shared_ptr<float> GetGrowFloat() const { return m_grow; }
+    const std::shared_ptr<float> GetHairFloat() const { return m_hair; }
     const std::shared_ptr<float> GetTrimFloat() const { return m_trimLength; }
     const std::shared_ptr<bool> GetPaintPtr() const { return m_paint; }
     const std::shared_ptr<int> GetMirror() const { return m_mirror; }
@@ -89,6 +90,7 @@ private:
     std::shared_ptr<glm::vec2> m_mousePosition;
     std::shared_ptr<float> m_brushRadius;
     std::shared_ptr<float> m_grow;
+    std::shared_ptr<float> m_hair;
     std::shared_ptr<float> m_trimLength;
     std::shared_ptr<bool> m_paint;
     std::shared_ptr<int> m_mirror;

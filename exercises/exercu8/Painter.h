@@ -25,6 +25,7 @@ private:
 	std::shared_ptr<bool> m_paint;
 	std::shared_ptr<float> m_brushRadius;
 	std::shared_ptr<float> m_grow;
+	std::shared_ptr<float> m_hair;
 	std::shared_ptr<float> m_trimLength;
 	std::shared_ptr<int> m_mirror;
 

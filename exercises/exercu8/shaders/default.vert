@@ -8,33 +8,25 @@ layout (location = 4) in vec2 VertexTexCoord;
 //Outputs
 out vec3 WorldPosition;
 out vec3 WorldNormal;
-out vec3 WorldTangent;
-out vec3 WorldBitangent;
+//out vec3 WorldTangent;
+//out vec3 WorldBitangent;
 out vec2 TexCoord;
 
 //Uniforms
 uniform mat4 WorldMatrix;
 uniform mat4 ViewProjMatrix;
 
-uniform sampler2D PaintTexture;
-uniform sampler2D ColorTexture;
-
 void main()
 {
-	float value = texture(ColorTexture, VertexTexCoord).r * texture(PaintTexture, VertexTexCoord).g;
-	// vertex position in world space (for lighting computation)
-	//WorldPosition = (WorldMatrix * vec4(VertexPosition + VertexNormal * 0.1 * value, 1.0)).xyz;
 	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
 
-	
-	
 	// normal in world space (for lighting computation)
 	WorldNormal = (WorldMatrix * vec4(VertexNormal, 0.0)).xyz;
 	// tangent in world space (for lighting computation)
-	WorldTangent = (WorldMatrix * vec4(VertexTangent, 0.0)).xyz;
+	//WorldTangent = (WorldMatrix * vec4(VertexTangent, 0.0)).xyz;
 
 	// bitangent in world space (for lighting computation)
-	WorldBitangent = (WorldMatrix * vec4(VertexBitangent, 0.0)).xyz;
+	//WorldBitangent = (WorldMatrix * vec4(VertexBitangent, 0.0)).xyz;
 
 	// texture coordinates
 	TexCoord = VertexTexCoord;

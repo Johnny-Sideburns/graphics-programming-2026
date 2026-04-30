@@ -25,6 +25,7 @@ Painter::Painter(Window& window, Renderer& renderer, std::shared_ptr<Texture2DOb
     m_brushRadius = m_paintRenderPass->GetBrushRadius();
     m_mousePosition = m_paintRenderPass->GetMousePosPtr();
     m_grow = m_paintRenderPass->GetGrowFloat();
+    m_hair = m_paintRenderPass->GetHairFloat();
     m_mirror = m_paintRenderPass->GetMirror();
     m_trimLength = m_paintRenderPass->GetTrimFloat();
 
@@ -48,9 +49,12 @@ void Painter::Update(const Window& window, float deltaTime)
         Paint(window);
     }
     //press p to grow beard
-    if (window.IsKeyPressed(GLFW_KEY_P)) {
-
+    if (window.IsKeyPressed(GLFW_KEY_B)) {
         *m_grow = 0.003;
+        *m_paint = true;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_H)) {
+        *m_hair = 0.003;
         *m_paint = true;
     }
     if (window.IsKeyPressed(GLFW_KEY_M)) {
@@ -62,7 +66,7 @@ void Painter::Update(const Window& window, float deltaTime)
         m_mPressed = false;
     }
     if (window.IsKeyPressed(GLFW_KEY_1)) {
-        *m_trimLength = 0.0;
+        *m_trimLength = 0.02;
     }
     if (window.IsKeyPressed(GLFW_KEY_2)) {
         *m_trimLength = 0.05;
@@ -87,6 +91,15 @@ void Painter::Update(const Window& window, float deltaTime)
     }
     if (window.IsKeyPressed(GLFW_KEY_9)) {
         *m_trimLength = 0.6;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_0)) {
+        *m_trimLength = 0.0;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_KP_ADD)) {
+        *m_trimLength = *m_trimLength + 0.0002;
+    }
+    if (window.IsKeyPressed(GLFW_KEY_KP_SUBTRACT)) {
+        *m_trimLength = *m_trimLength - 0.0002;
     }
 }
 

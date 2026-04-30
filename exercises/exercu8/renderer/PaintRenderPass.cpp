@@ -19,6 +19,7 @@ PaintRenderPass::PaintRenderPass(int width, int height, Renderer& renderer, std:
     m_brushWorldNormal = std::make_shared<glm::vec3>(0.0f);
     m_brushRadius = std::make_shared<float>(0.0f);
     m_grow = std::make_shared<float>(0.0f);
+    m_hair = std::make_shared<float>(0.0f);
     m_trimLength = std::make_shared<float>(0.0f);
     m_paint = std::make_shared<bool>(false);
     m_mirror = std::make_shared<int>(0);
@@ -179,11 +180,13 @@ void PaintRenderPass::InitTextures(int width, int height)
     m_depthTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     // set the uv texture 2d 32float for precision (might be overkill)
+    /*
     m_uvTexture = std::make_shared<Texture2DObject>();
     m_uvTexture->Bind();
     m_uvTexture->SetImage(0, width, height, TextureObject::FormatRG, TextureObject::InternalFormatRG32F);
     m_uvTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
     m_uvTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
+    */
 
     // Bind the normals texture 
     m_normalsTexture = std::make_shared<Texture2DObject>();
@@ -262,6 +265,7 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
     ShaderProgram::Location brushLocation = m_uvShaderProgramPtr->GetUniformLocation("BrushRadius");
     ShaderProgram::Location brushNormalLocation = m_uvShaderProgramPtr->GetUniformLocation("BrushNormal");
     ShaderProgram::Location growLocation = m_uvShaderProgramPtr->GetUniformLocation("Grow");
+    ShaderProgram::Location hairLocation = m_uvShaderProgramPtr->GetUniformLocation("Hair");
 
 
     renderer.RegisterShaderProgram(m_uvShaderProgramPtr,
@@ -274,6 +278,7 @@ void PaintRenderPass::InitUVShaderProgram(Renderer& renderer)
             shaderProgram.SetUniform(brushLocation, *GetBrushRadius());
             shaderProgram.SetUniform(brushNormalLocation, *GetBrushWorldNormal());
             shaderProgram.SetUniform(growLocation, *GetGrowFloat());
+            shaderProgram.SetUniform(hairLocation, *GetHairFloat());
 
         },
         nullptr
@@ -351,6 +356,7 @@ void PaintRenderPass::Render()
         Paint();
         *m_paint = false;
         *m_grow = 0.0;
+        *m_hair = 0.0;
     }
     
     //DebugDraw();
@@ -378,7 +384,7 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
     
     renderer.GetDevice().Clear(true, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
-    glDisable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {   
         /*
@@ -406,7 +412,7 @@ void PaintRenderPass::RenderCanvas(Renderer& renderer)
 
     renderer.GetDevice().Clear(false, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
-    glDisable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {
         /*
@@ -422,7 +428,7 @@ void PaintRenderPass::RenderCanvas(Renderer& renderer)
         drawcallInfo.drawcall.Draw();
 
     }
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 }
 void PaintRenderPass::RenderPaint(Renderer& renderer)
 {
@@ -433,7 +439,7 @@ void PaintRenderPass::RenderPaint(Renderer& renderer)
 
     renderer.GetDevice().Clear(false, Color(0.0f, 0.0f, 0.0f, 1.0f), true, 1.0f);
 
-    glDisable(GL_CULL_FACE);
+    //glDisable(GL_CULL_FACE);
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {
         /*
@@ -449,7 +455,7 @@ void PaintRenderPass::RenderPaint(Renderer& renderer)
         drawcallInfo.drawcall.Draw();
 
     }
-    glEnable(GL_CULL_FACE);
+    //glEnable(GL_CULL_FACE);
 }
 
 

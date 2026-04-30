@@ -1,26 +1,25 @@
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 128) out;
+layout(triangle_strip, max_vertices = 1024) out;
 
 
 in vec3 WorldPosition[];
 in vec3 WorldNormal[];
-in vec3 WorldTangent[];
-in vec3 WorldBitangent[];
+//in vec3 WorldTangent[];
+//in vec3 WorldBitangent[];
 in vec2 TexCoord[];
 
-out vec3 g_WorldPosition;
-out vec3 g_WorldNormal;
-out vec3 g_WorldTangent;
-out vec3 g_WorldBitangent;
-out vec2 g_TexCoord;
-out float g_IsHair;
+out vec3 GeoWorldPosition;
+out vec3 GeoWorldNormal;
+//out vec3 GeoWorldTangent;
+//out vec3 GeoWorldBitangent;
+out vec2 GeoTexCoord;
 
 uniform mat4 ViewProjMatrix;
 uniform vec3 CameraPosition;
 
 uniform sampler2D PaintTexture;
-uniform sampler2D ColorTexture;
+uniform sampler2D HairTexture;
 
 
 // seudo deterministic random coutesy of:
@@ -79,25 +78,21 @@ void main()
     for (int i = 0; i < 3; i++)
     {
                 
-        g_WorldPosition = WorldPosition[i];
-        g_WorldNormal = WorldNormal[i];
-        g_WorldTangent = WorldTangent[i];
-        g_WorldBitangent = WorldBitangent[i];
-        g_TexCoord = TexCoord[i];
-        g_IsHair = 0;
+        GeoWorldPosition = WorldPosition[i];
+        GeoWorldNormal = WorldNormal[i];
+        //GeoWorldTangent = WorldTangent[i];
+        //GeoWorldBitangent = WorldBitangent[i];
+        GeoTexCoord = TexCoord[i];
         gl_Position = gl_in[i].gl_Position;
 
         EmitVertex();
     }
     EndPrimitive();
 
-    float value = texture(ColorTexture, TexCoord[0]).r + texture(ColorTexture, TexCoord[1]).r + texture(ColorTexture, TexCoord[2]).r;
-    float grow = texture(PaintTexture, TexCoord[0]).g + texture(PaintTexture, TexCoord[1]).g + texture(PaintTexture, TexCoord[2]).g;
-    if (value * grow > 0.0)
-    {
+    
         // --- 2. strands ---
-    int strandCount = 3;
-    int segments = 6;
+    const int strandCount = 2;
+    int segments = 12;
     float width = 0.0005;
 
     for (int s = 0; s < strandCount; s++)
@@ -105,18 +100,28 @@ void main()
         vec2 uv;
         vec3 pos = getStrandPos(s, uv);
 
-        float grow = texture(PaintTexture, uv).g;
-        float mask = texture(ColorTexture, uv).r;
+        vec2 growth = texture(PaintTexture, uv).rg;
+        vec2 masked = texture(HairTexture, uv).rg;
 
-        if (grow * mask <= 0.0)
+        if (length(growth) * length(masked) <= 0.0)
             continue;
 
-        vec3 normal = getNormal(uv);
+        float mask = masked.r;
+        float grow = growth.r;
 
         // random variation
         float r = random(pos.xy + float(s));
+        float height = mix(0.18, 0.2, r);
 
-        float height = mix(0.15, 0.2, r);
+        if (masked.g * growth.g > 0.0)
+        {
+            mask = masked.g;
+            grow = growth.g;
+            height = height *2;
+        }
+
+        vec3 normal = getNormal(uv);
+
 
         vec3 bendDir = normalize(cross(normal, vec3(0,1,0)));
 
@@ -143,29 +148,28 @@ void main()
 
             vec3 viewDir = normalize( center - CameraPosition);
             vec3 side    = normalize(cross(viewDir, dir)) * width;
-            vec3 normal  = normalize(cross(side, dir));
 
             vec3 left  = center - side;
             vec3 right = center + side;
 
             vec3 strandNormal = normalize(cross(side, dir));
-            g_WorldNormal = strandNormal;
+            GeoWorldNormal = strandNormal;
 
-            
-            g_TexCoord = uv;
+            GeoTexCoord = vec2(mix(0.8,0.92,r), 1-mix(t, 0.5, r));
 
-            g_WorldPosition = left;
+            GeoWorldPosition = left;
             gl_Position = ViewProjMatrix * vec4(left, 1.0);
             EmitVertex();
 
-            g_WorldPosition = right;
-            g_IsHair = 1;
+            GeoWorldPosition = right;
             gl_Position = ViewProjMatrix * vec4(right, 1.0);
+
+
             EmitVertex();
         }
 
         EndPrimitive();
-        }
+
     };
 
 }
