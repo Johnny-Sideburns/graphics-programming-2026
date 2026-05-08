@@ -28,12 +28,16 @@ private:
     void InitializeCamera();
     void InitializeLights();
     void InitializeMaterial();
+    void InitializeMaterialGeo();
     void InitializeModels();
     void InitializeRenderer();
 
     void RenderGUI();
 
 private:
+    // Use compute else use Geometry shader, will work on lower open gl version, but can be harder on integrated graphics cards.
+    bool m_use_compute = false;
+
     // Helper object for debug GUI
     DearImGui m_imGui;
 
@@ -51,6 +55,7 @@ private:
 
     // Default material
     std::shared_ptr<Material> m_defaultMaterial;
+    std::shared_ptr<Material> m_hairMaterial;
 
     std::shared_ptr<Painter> m_painter;
     std::shared_ptr<Texture2DObject> m_target;

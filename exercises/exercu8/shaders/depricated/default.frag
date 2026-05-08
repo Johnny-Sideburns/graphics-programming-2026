@@ -14,25 +14,18 @@ uniform sampler2D ColorTexture;
 uniform sampler2D NormalTexture;
 uniform sampler2D SpecularTexture;
 
-uniform sampler2D PaintTexture;
-uniform sampler2D HairTexture;
-
 uniform vec3 CameraPosition;
 
 void main()
 {
-	vec3 paintHair = texture(PaintTexture, TexCoord).rgb * texture(HairTexture, TexCoord).rgb;
-	if (length(paintHair) > 0.0){
-		FragColor = vec4(paintHair, 1.0);
-		return;
-	}
 	SurfaceData data;
 	data.normal = SampleNormalMap(NormalTexture, TexCoord, normalize(WorldNormal), normalize(WorldTangent), normalize(WorldBitangent));
-	data.albedo = Color * texture(ColorTexture, TexCoord).rgb;
+	data.reflectionColor = Color * texture(ColorTexture, TexCoord).rgb;
 	vec3 arm = texture(SpecularTexture, TexCoord).rgb;
-	data.ambientOcclusion = arm.x;
-	data.roughness        = arm.y;
-	data.metalness        = arm.z;
+	data.ambientReflectance = arm.x;
+	data.diffuseReflectance = 1.0f;
+	data.specularReflectance = pow(1.0f - arm.y, 4);
+	data.specularExponent = 2.0f / pow(arm.y, 2) - 2.0f;
 
 	vec3 position = WorldPosition;
 	vec3 viewDir = GetDirection(position, CameraPosition);

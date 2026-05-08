@@ -29,6 +29,6 @@ void main()
         }
     }
 
-    FragColor = vec4(clamp(color0 + color1, 0.0, 1.0), 1.0);
+    FragColor = vec4(min(color0.r + color1.r, 0.5),clamp(color0.g + color1.g, 0.0, 1.0), 0.0, 1.0);
 
 }

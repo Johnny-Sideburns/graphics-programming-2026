@@ -5,17 +5,11 @@ layout (location = 2) in vec3 VertexTangent;
 layout (location = 3) in vec3 VertexBitangent;
 layout (location = 4) in vec2 VertexTexCoord;
 
-
-layout(std430, binding = 0) buffer StrandBuffer
-{
-    vec4 strands[];
-};
-
 //Outputs
 out vec3 WorldPosition;
 out vec3 WorldNormal;
-out vec3 WorldTangent;
-out vec3 WorldBitangent;
+//out vec3 WorldTangent;
+//out vec3 WorldBitangent;
 out vec2 TexCoord;
 
 //Uniforms
@@ -24,28 +18,15 @@ uniform mat4 ViewProjMatrix;
 
 void main()
 {
-	// vertex position in world space (for lighting computation)
 	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
-
-	uint id = gl_VertexID;
-
-    // Prevent out-of-bounds (IMPORTANT)
-    if (id < strands.length())
-    {
-        vec3 strandPos = strands[id].xyz;
-
-        // Example: offset mesh slightly by strand data
-        //WorldPosition += strandPos * 0.01;
-    }
 
 	// normal in world space (for lighting computation)
 	WorldNormal = (WorldMatrix * vec4(VertexNormal, 0.0)).xyz;
-
 	// tangent in world space (for lighting computation)
-	WorldTangent = (WorldMatrix * vec4(VertexTangent, 0.0)).xyz;
+	//WorldTangent = (WorldMatrix * vec4(VertexTangent, 0.0)).xyz;
 
 	// bitangent in world space (for lighting computation)
-	WorldBitangent = (WorldMatrix * vec4(VertexBitangent, 0.0)).xyz;
+	//WorldBitangent = (WorldMatrix * vec4(VertexBitangent, 0.0)).xyz;
 
 	// texture coordinates
 	TexCoord = VertexTexCoord;

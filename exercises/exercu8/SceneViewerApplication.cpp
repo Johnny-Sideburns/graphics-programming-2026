@@ -23,6 +23,8 @@
 #include <ituGL/scene/ImGuiSceneVisitor.h>
 #include <imgui.h>
 
+#include "renderer/HairComputePass.h"
+#include "renderer/HairRenderPass.h"
 
 SceneViewerApplication::SceneViewerApplication()
     : Application(1024, 1024, "Scene Viewer demo")
@@ -39,7 +41,7 @@ void SceneViewerApplication::Initialize()
 
     InitializeCamera();
     InitializeLights();
-    InitializeMaterial();
+    m_use_compute? InitializeMaterial(): InitializeMaterialGeo();
     InitializeModels();
     InitializeRenderer();
 
@@ -113,12 +115,12 @@ void SceneViewerApplication::InitializeLights()
     //m_scene.AddSceneNode(std::make_shared<SceneLight>("point light", pointLight));
 }
 
-void SceneViewerApplication::InitializeMaterial()
+void SceneViewerApplication::InitializeMaterialGeo()
 {
     // Load and build shader
     std::vector<const char*> vertexShaderPaths;
     vertexShaderPaths.push_back("shaders/version330.glsl");
-    vertexShaderPaths.push_back("shaders/default.vert");
+    vertexShaderPaths.push_back("shaders/defaultGeo.vert");
     Shader vertexShader = ShaderLoader(Shader::VertexShader).Load(vertexShaderPaths);
 
     std::vector<const char*> fragmentShaderPaths;
@@ -126,17 +128,16 @@ void SceneViewerApplication::InitializeMaterial()
     fragmentShaderPaths.push_back("shaders/utils.glsl");
     fragmentShaderPaths.push_back("shaders/lambert-ggx.glsl");
     fragmentShaderPaths.push_back("shaders/lighting.glsl");
-    fragmentShaderPaths.push_back("shaders/default_pbr.frag");
+    fragmentShaderPaths.push_back("shaders/default_pbrGeo.frag");
     Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
 
 
     std::vector<const char*> geometryPaths;
     geometryPaths.push_back("shaders/version330.glsl");
     geometryPaths.push_back("shaders/hair_geo.geom");
-    std::cout << "hello" << std::endl;
+
     Shader geometryShader = ShaderLoader(Shader::GeometryShader).Load(geometryPaths);
 
-    std::cout << "hello" << std::endl;
     std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
     shaderProgramPtr->Build(vertexShader, fragmentShader, geometryShader);
 
@@ -176,6 +177,93 @@ void SceneViewerApplication::InitializeMaterial()
     m_defaultMaterial = std::make_shared<Material>(shaderProgramPtr, filteredUniforms);
     
 }
+
+
+void SceneViewerApplication::InitializeMaterial()
+{
+    // Load and build shader
+    std::vector<const char*> vertexShaderPaths;
+    vertexShaderPaths.push_back("shaders/version430.glsl");
+    vertexShaderPaths.push_back("shaders/default.vert");
+    Shader vertexShader = ShaderLoader(Shader::VertexShader).Load(vertexShaderPaths);
+
+    std::vector<const char*> fragmentShaderPaths;
+    fragmentShaderPaths.push_back("shaders/version430.glsl");
+    fragmentShaderPaths.push_back("shaders/utils.glsl");
+    fragmentShaderPaths.push_back("shaders/lambert-ggx.glsl");
+    fragmentShaderPaths.push_back("shaders/lighting.glsl");
+    fragmentShaderPaths.push_back("shaders/default_pbr.frag");
+    Shader fragmentShader = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths);
+
+    std::shared_ptr<ShaderProgram> shaderProgramPtr = std::make_shared<ShaderProgram>();
+    shaderProgramPtr->Build(vertexShader, fragmentShader);
+
+
+    // Get transform related uniform locations
+    ShaderProgram::Location cameraPositionLocation = shaderProgramPtr->GetUniformLocation("CameraPosition");
+    ShaderProgram::Location worldMatrixLocation = shaderProgramPtr->GetUniformLocation("WorldMatrix");
+    ShaderProgram::Location viewProjMatrixLocation = shaderProgramPtr->GetUniformLocation("ViewProjMatrix");
+
+    // Register shader with renderer
+    m_renderer.RegisterShaderProgram(shaderProgramPtr,
+        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
+        {
+            if (cameraChanged)
+            {
+                shaderProgram.SetUniform(cameraPositionLocation, camera.ExtractTranslation());
+                shaderProgram.SetUniform(viewProjMatrixLocation, camera.GetViewProjectionMatrix());
+            }
+            shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
+        },
+        m_renderer.GetDefaultUpdateLightsFunction(*shaderProgramPtr)
+    );
+
+    // Filter out uniforms that are not material properties
+    ShaderUniformCollection::NameSet filteredUniforms;
+    filteredUniforms.insert("CameraPosition");
+    filteredUniforms.insert("WorldMatrix");
+    filteredUniforms.insert("ViewProjMatrix");
+    filteredUniforms.insert("LightIndirect");
+    filteredUniforms.insert("LightColor");
+    filteredUniforms.insert("LightPosition");
+    filteredUniforms.insert("LightDirection");
+    filteredUniforms.insert("LightAttenuation");
+
+    // Create reference material
+    assert(shaderProgramPtr);
+    m_defaultMaterial = std::make_shared<Material>(shaderProgramPtr, filteredUniforms);
+
+    /*
+    this is idiotic shit 
+    std::shared_ptr<ShaderProgram> hairShader = std::make_shared<ShaderProgram>();
+    std::vector<const char*> compVertexShaderPaths;
+    compVertexShaderPaths.push_back("shaders/version330.glsl");
+    compVertexShaderPaths.push_back("shaders/hair_comp.vert");
+    Shader hairVS = ShaderLoader(Shader::VertexShader).Load(compVertexShaderPaths);
+
+    Shader hairFS = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths); 
+    hairShader->Build(hairVS, hairFS);
+
+    m_renderer.RegisterShaderProgram(hairShader,
+        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
+        {
+            if (cameraChanged)
+            {
+                shaderProgram.SetUniform(cameraPositionLocation, camera.ExtractTranslation());
+                shaderProgram.SetUniform(viewProjMatrixLocation, camera.GetViewProjectionMatrix());
+            }
+            shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
+        },
+        m_renderer.GetDefaultUpdateLightsFunction(*hairShader)
+    );
+
+    assert(hairShader);
+
+    m_hairMaterial = std::make_shared<Material>(hairShader, filteredUniforms);
+    */
+
+}
+
 
 void SceneViewerApplication::InitializeModels()
 {
@@ -236,8 +324,7 @@ void SceneViewerApplication::InitializeModels()
     ShaderProgram::Location hairLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("HairTexture");
     std::shared_ptr<Texture2DObject> hairGrowthTexture = std::make_shared<Texture2DObject>(loader.GetTexture2DLoader().Load("models/head/HairZones.png"));
  
-    std::cout << "Hair location: " << hairLocation << std::endl;
-    unsigned int count = headModel->GetMaterialCount();
+    int count = headModel->GetMaterialCount();
     for (int i = 0; i < count; i++) {
         headModel->GetMaterial(i).SetUniformValue(paintLocation, paintTexture);
         headModel->GetMaterial(i).SetUniformValue(hairLocation, hairGrowthTexture);
@@ -248,11 +335,25 @@ void SceneViewerApplication::InitializeModels()
 
     m_target = paintTexture;
 
+    /*
+    //hair model
+    std::shared_ptr<Model> hairModel = loader.LoadShared("models/hair/hairstrand.obj");
+    m_scene.AddSceneNode(std::make_shared<SceneModel>("hair", hairModel));
+
+    hairModel->GetMaterial(0) = *m_hairMaterial;
+    */
+
 }
 
 void SceneViewerApplication::InitializeRenderer()
 {
     m_renderer.AddRenderPass(std::make_unique<SkyboxRenderPass>(m_skyboxTexture));
+    if (m_use_compute) {
+        std::unique_ptr<HairComputePass> hairComputePass = std::make_unique<HairComputePass>();
+        GLuint strandBuffer = hairComputePass->GetStrandBuffer();
+        m_renderer.AddRenderPass(std::move(hairComputePass));
+        m_renderer.AddRenderPass(std::make_unique<HairRenderPass>(m_renderer,strandBuffer));
+    }
     m_renderer.AddRenderPass(std::make_unique<ForwardRenderPass>());
 }
 

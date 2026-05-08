@@ -395,9 +395,9 @@ void PaintRenderPass::RenderUV(Renderer& renderer)
         m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
         */
         
-        renderer.UpdateTransforms(m_uvShaderProgramPtr, drawcallInfo.worldMatrixIndex);
-        drawcallInfo.vao.Bind();
-        drawcallInfo.drawcall.Draw();
+        renderer.UpdateTransforms(m_uvShaderProgramPtr, drawcallInfo.GetWorldMatrixIndex());
+        drawcallInfo.GetVAO().Bind();
+        drawcallInfo.GetDrawcall().Draw();
       
     }
     //glEnable(GL_CULL_FACE);
@@ -421,11 +421,14 @@ void PaintRenderPass::RenderCanvas(Renderer& renderer)
         m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
         if (!m_paintTexture) continue;
         m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
-        */
 
         renderer.UpdateTransforms(m_canvasShaderProgramPtr, drawcallInfo.worldMatrixIndex);
         drawcallInfo.vao.Bind();
         drawcallInfo.drawcall.Draw();
+        */
+        renderer.UpdateTransforms(m_canvasShaderProgramPtr, drawcallInfo.GetWorldMatrixIndex());
+        drawcallInfo.GetVAO().Bind();
+        drawcallInfo.GetDrawcall().Draw();
 
     }
     //glEnable(GL_CULL_FACE);
@@ -448,11 +451,15 @@ void PaintRenderPass::RenderPaint(Renderer& renderer)
         m_paintTexture = std::dynamic_pointer_cast<Texture2DObject>(tex);
         if (!m_paintTexture) continue;
         m_uvFramebuffer.SetTexture(FramebufferObject::Target::Draw, FramebufferObject::Attachment::Color0, *m_paintTexture);
-        */
 
         renderer.UpdateTransforms(m_paintShaderProgramPtr, drawcallInfo.worldMatrixIndex);
         drawcallInfo.vao.Bind();
         drawcallInfo.drawcall.Draw();
+        */
+        renderer.UpdateTransforms(m_paintShaderProgramPtr, drawcallInfo.GetWorldMatrixIndex());
+        drawcallInfo.GetVAO().Bind();
+        drawcallInfo.GetDrawcall().Draw();
+
 
     }
     //glEnable(GL_CULL_FACE);
@@ -473,9 +480,13 @@ void PaintRenderPass::SetBrushWorldPos(Renderer& renderer)
     
     for (const Renderer::DrawcallInfo& drawcallInfo : drawcallCollection)
     {
-        renderer.UpdateTransforms(m_hitShaderProgramPtr, drawcallInfo.worldMatrixIndex);  
-        drawcallInfo.vao.Bind();
-        drawcallInfo.drawcall.Draw();
+        //renderer.UpdateTransforms(m_hitShaderProgramPtr, drawcallInfo.worldMatrixIndex);  
+        //drawcallInfo.vao.Bind();
+        //drawcallInfo.drawcall.Draw();
+        renderer.UpdateTransforms(m_hitShaderProgramPtr, drawcallInfo.GetWorldMatrixIndex());
+        drawcallInfo.GetVAO().Bind();
+        drawcallInfo.GetDrawcall().Draw();
+
     }
 
     /*

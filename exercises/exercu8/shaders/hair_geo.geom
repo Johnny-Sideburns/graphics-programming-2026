@@ -111,13 +111,12 @@ void main()
 
         // random variation
         float r = random(pos.xy + float(s));
-        float height = mix(0.18, 0.2, r);
+        float height = mix(0.36, 0.4, r);
 
-        if (masked.g * growth.g > 0.0)
+        if (masked.g * growth.g > masked.r * growth.r)
         {
             mask = masked.g;
             grow = growth.g;
-            height = height *2;
         }
 
         vec3 normal = getNormal(uv);
@@ -127,7 +126,7 @@ void main()
 
         // --- bezier control points ---
      
-        vec3 gravity = vec3(0,-3,0);
+        vec3 gravity = vec3(0,-1,0);
 
         vec3 p0 = pos;
         vec3 p1 = pos + normal * (height * 0.3);
@@ -155,7 +154,7 @@ void main()
             vec3 strandNormal = normalize(cross(side, dir));
             GeoWorldNormal = strandNormal;
 
-            GeoTexCoord = vec2(mix(0.8,0.92,r), 1-mix(t, 0.5, r));
+            GeoTexCoord = vec2(mix(0.8,0.92,r), 0.95-t*0.95);
 
             GeoWorldPosition = left;
             gl_Position = ViewProjMatrix * vec4(left, 1.0);
