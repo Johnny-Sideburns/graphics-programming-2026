@@ -5,8 +5,12 @@
 
 #include "iostream"
 
-HairComputePass::HairComputePass()
+HairComputePass::HairComputePass(std::shared_ptr<Model> headModel)
+	: m_vertexBuffer(std::as_const(headModel->GetMesh()).GetVertexBuffer(0).GetHandle())
 {
+	std::cout << headModel->GetMesh().GetVertexBufferCount() << std::endl;
+	std::cout << headModel->GetMesh().GetSubmeshCount() << std::endl;
+
 	InitComputeShader();	
 }
 
@@ -21,7 +25,7 @@ void HairComputePass::InitComputeShader() {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_strandBuffer);
 
 	glBufferData(GL_SHADER_STORAGE_BUFFER,
-		sizeof(glm::vec4) * 131072,
+		sizeof(glm::vec4) * 262144,
 		nullptr,
 		GL_DYNAMIC_DRAW);
 
@@ -31,12 +35,15 @@ void HairComputePass::InitComputeShader() {
 
 void HairComputePass::Render()
 {
+	glMemoryBarrier(GL_VERTEX_ATTRIB_ARRAY_BARRIER_BIT);
 	m_computeShaderProgram->Use();
 	// Bind buffer to binding = 0 (matches shader)
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_strandBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_strandBuffer);
-
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_vertexBuffer);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_vertexBuffer);
 	// Dispatch compute
-	glDispatchCompute(64, 1, 1);
+	glDispatchCompute(2048, 1, 1);
 
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);

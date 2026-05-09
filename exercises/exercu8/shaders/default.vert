@@ -6,11 +6,6 @@ layout (location = 3) in vec3 VertexBitangent;
 layout (location = 4) in vec2 VertexTexCoord;
 
 
-layout(std430, binding = 0) buffer StrandBuffer
-{
-    vec4 strands[];
-};
-
 //Outputs
 out vec3 WorldPosition;
 out vec3 WorldNormal;
@@ -26,17 +21,6 @@ void main()
 {
 	// vertex position in world space (for lighting computation)
 	WorldPosition = (WorldMatrix * vec4(VertexPosition, 1.0)).xyz;
-
-	uint id = gl_VertexID;
-
-    // Prevent out-of-bounds (IMPORTANT)
-    if (id < strands.length())
-    {
-        vec3 strandPos = strands[id].xyz;
-
-        // Example: offset mesh slightly by strand data
-        //WorldPosition += strandPos * 0.01;
-    }
 
 	// normal in world space (for lighting computation)
 	WorldNormal = (WorldMatrix * vec4(VertexNormal, 0.0)).xyz;

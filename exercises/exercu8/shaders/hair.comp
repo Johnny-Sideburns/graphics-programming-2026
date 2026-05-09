@@ -20,14 +20,18 @@ layout(std430, binding = 0) buffer StrandBuffer
     Strand strands[];
 };
 
-layout(std430, binding = 1) buffer VertexBuffer
+struct Vertex
 {
-    vec3 positions[];
+    vec3 VertexPosition;
+    vec3 VertexNormal;
+    vec3 VertexTangent;
+    vec3 VertexBitangent;
+    vec2 VertexTexCoord;
 };
 
-layout(std430, binding = 2) buffer UVBuffer
+layout(std430, binding = 1) buffer VertexBuffer
 {
-    vec2 uvs[];
+    float data[];
 };
 
 uniform sampler2D PaintTexture;
@@ -40,30 +44,50 @@ uniform int strandsPerTriangle;
 // Author @patriciogv - 2015
 // http://patriciogonzalezvivo.com
 // https://thebookofshaders.com/10/
-float hash(vec2 p)
+float random(vec2 st)
 {
-    return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453);
+    return fract(sin(dot(st, vec2(12.9898,78.233))) * 43758.5453);
 }
 
 vec3 barycentric(vec3 a, vec3 b, vec3 c, vec3 w)
 {
     return a*w.x + b*w.y + c*w.z;
 }
+
+// because there apparently is some sort of missmatch between v 330 and 430, where 430 "pads" the vectors
+// so in lieu of a 1:1 struct, treat it as a list of floats where the index spacing is 14 i.e. 56/4 so:
+// * 14; + 0  for position, + 3 for normal, + 6 for tangent, + 9 for bitangent, +12 for texcoord.
+vec3 getFromData(uint index)
+{
+    return vec3(
+        data[index + 0],
+        data[index + 1],
+        data[index + 2]
+    );
+}
+uint position(uint index)
+{
+    return index * 14;
+}
+uint normal(uint index){
+    return index * 14 + 3;
+}
+uint uv(uint index){
+    return index * 14 + 12;
+}
 void main()
 {
     uint id = gl_GlobalInvocationID.x;
+    if ((id+2) *14 > data.length()) return;
 
-    //if (id >= 65536) return;
 
-    float x = float(id % 32) * 0.02;
-    float z = float(id / 32) * 0.02;
-
-    vec3 base = vec3(x, 0.0, z);
+    vec3 base = getFromData(position(id));
+    vec3 normal = getFromData(normal(id));
 
     strands[id].p0 = base;
-    strands[id].p1 = base + vec3(0.0, 0.1, 0.0);
-    strands[id].p2 = base + vec3(0.0, 0.2, 0.0);
-    strands[id].p3 = base + vec3(0.0, 0.3, 0.0);
+    strands[id].p1 = base + normal * 0.1;
+    strands[id].p2 = base + normal * 0.2;
+    strands[id].p3 = base + normal * 0.3;
 
     strands[id].width = 0.001;
     strands[id].grow = 1.0;

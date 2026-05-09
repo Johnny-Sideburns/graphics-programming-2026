@@ -50,11 +50,11 @@ void Painter::Update(const Window& window, float deltaTime)
     }
     //press p to grow beard
     if (window.IsKeyPressed(GLFW_KEY_B)) {
-        *m_grow = 0.003;
+        *m_grow = 0.005;
         *m_paint = true;
     }
     if (window.IsKeyPressed(GLFW_KEY_H)) {
-        *m_hair = 0.003;
+        *m_hair = 0.005;
         *m_paint = true;
     }
     if (window.IsKeyPressed(GLFW_KEY_M)) {
@@ -66,28 +66,28 @@ void Painter::Update(const Window& window, float deltaTime)
         m_mPressed = false;
     }
     if (window.IsKeyPressed(GLFW_KEY_1)) {
-        *m_trimLength = 0.02;
+        *m_trimLength = 0.01;
     }
     if (window.IsKeyPressed(GLFW_KEY_2)) {
-        *m_trimLength = 0.05;
+        *m_trimLength = 0.03;
     }
     if (window.IsKeyPressed(GLFW_KEY_3)) {
-        *m_trimLength = 0.1;
+        *m_trimLength = 0.05;
     }
     if (window.IsKeyPressed(GLFW_KEY_4)) {
-        *m_trimLength = 0.15;
+        *m_trimLength = 0.1;
     }
     if (window.IsKeyPressed(GLFW_KEY_5)) {
-        *m_trimLength = 0.2;
+        *m_trimLength = 0.15;
     }
     if (window.IsKeyPressed(GLFW_KEY_6)) {
-        *m_trimLength = 0.3;
+        *m_trimLength = 0.2;
     }
     if (window.IsKeyPressed(GLFW_KEY_7)) {
-        *m_trimLength = 0.4;
+        *m_trimLength = 0.3;
     }
     if (window.IsKeyPressed(GLFW_KEY_8)) {
-        *m_trimLength = 0.5;
+        *m_trimLength = 0.45;
     }
     if (window.IsKeyPressed(GLFW_KEY_9)) {
         *m_trimLength = 0.6;

@@ -36,7 +36,7 @@ private:
 
 private:
     // Use compute else use Geometry shader, will work on lower open gl version, but can be harder on integrated graphics cards.
-    bool m_use_compute = false;
+    bool m_use_compute = true;
 
     // Helper object for debug GUI
     DearImGui m_imGui;
@@ -59,5 +59,6 @@ private:
 
     std::shared_ptr<Painter> m_painter;
     std::shared_ptr<Texture2DObject> m_target;
+    std::shared_ptr<Model> headModel;
 
 };

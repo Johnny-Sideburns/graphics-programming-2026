@@ -4,6 +4,8 @@
 #include <ituGL/texture/Texture2DObject.h>
 #include <ituGL/texture/FramebufferObject.h>
 
+#include <ituGL/geometry/Model.h>
+
 #include <memory>
 
 class Renderer;
@@ -11,7 +13,7 @@ class Renderer;
 class HairComputePass : public RenderPass
 {
 public:
-    HairComputePass();
+    HairComputePass(std::shared_ptr<Model> headModel);
 
     void Render() override;
     const GLuint GetStrandBuffer() const { return m_strandBuffer; }
@@ -22,4 +24,5 @@ private:
 
     std::shared_ptr<ShaderProgram> m_computeShaderProgram;
     GLuint m_strandBuffer;
+    GLuint m_vertexBuffer;
 };

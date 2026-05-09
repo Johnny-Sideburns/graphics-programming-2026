@@ -3,16 +3,13 @@ layout(triangles) in;
 layout(triangle_strip, max_vertices = 1024) out;
 
 
+//worldTangent and bitangent are ignored here to reduce amount of data emitted
 in vec3 WorldPosition[];
 in vec3 WorldNormal[];
-//in vec3 WorldTangent[];
-//in vec3 WorldBitangent[];
 in vec2 TexCoord[];
 
 out vec3 GeoWorldPosition;
 out vec3 GeoWorldNormal;
-//out vec3 GeoWorldTangent;
-//out vec3 GeoWorldBitangent;
 out vec2 GeoTexCoord;
 
 uniform mat4 ViewProjMatrix;
@@ -20,7 +17,6 @@ uniform vec3 CameraPosition;
 
 uniform sampler2D PaintTexture;
 uniform sampler2D HairTexture;
-
 
 // seudo deterministic random coutesy of:
 // Author @patriciogv - 2015
@@ -55,8 +51,6 @@ vec3 getStrandPos(int s, out vec2 uv)
 // interpolated normal (stable)
 vec3 getNormal(vec2 uv)
 {
-    // barycentric again but reuse logic if you want
-    // here just average (cheap + stable baseline)
     return normalize(
         WorldNormal[0] +
         WorldNormal[1] +
@@ -75,6 +69,7 @@ vec3 bezier(vec3 a, vec3 b, vec3 c, vec3 d, float t)
 
 void main()
 {
+    // pass on the mesh
     for (int i = 0; i < 3; i++)
     {
                 
@@ -89,8 +84,7 @@ void main()
     }
     EndPrimitive();
 
-    
-        // --- 2. strands ---
+
     const int strandCount = 2;
     int segments = 12;
     float width = 0.0005;
@@ -124,7 +118,7 @@ void main()
 
         vec3 bendDir = normalize(cross(normal, vec3(0,1,0)));
 
-        // --- bezier control points ---
+        //bezier control points
      
         vec3 gravity = vec3(0,-1,0);
 
@@ -134,7 +128,7 @@ void main()
         vec3 p3 = pos + normalize(normal + gravity) * height;
 
 
-        // --- build strand ---
+        //build strand
         for (int i = 0; i <= segments; i++)
         {
             float t = clamp (float(i) / float(segments), 0.0 , grow * mask);

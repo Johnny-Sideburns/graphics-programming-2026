@@ -14,5 +14,10 @@ void main()
 
     vec3 pos = VertexPosition + offset;
 
-    gl_Position = ViewProjMatrix * WorldMatrix * vec4(pos, 1.0);
+    //gl_Position = ViewProjMatrix * WorldMatrix * vec4(pos, 1.0);
+	
+	WorldPosition = (WorldMatrix * vec4(pos, 1.0)).xyz;
+    
+    gl_Position = ViewProjMatrix * vec4(WorldPosition, 1.0);
+
 }

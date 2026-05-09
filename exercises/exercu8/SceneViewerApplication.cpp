@@ -304,7 +304,7 @@ void SceneViewerApplication::InitializeModels()
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::SpecularTexture, "SpecularTexture");
 
     // Load model
-    std::shared_ptr<Model> headModel = loader.LoadShared("models/head/headdy.obj");
+    headModel = loader.LoadShared("models/head/headdy.obj");
     m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
 
     // Add 'Extra Textures'
@@ -334,7 +334,8 @@ void SceneViewerApplication::InitializeModels()
     m_defaultMaterial->SetUniformValue(hairLocation, hairGrowthTexture);
 
     m_target = paintTexture;
-
+    
+    
     /*
     //hair model
     std::shared_ptr<Model> hairModel = loader.LoadShared("models/hair/hairstrand.obj");
@@ -349,7 +350,7 @@ void SceneViewerApplication::InitializeRenderer()
 {
     m_renderer.AddRenderPass(std::make_unique<SkyboxRenderPass>(m_skyboxTexture));
     if (m_use_compute) {
-        std::unique_ptr<HairComputePass> hairComputePass = std::make_unique<HairComputePass>();
+        std::unique_ptr<HairComputePass> hairComputePass = std::make_unique<HairComputePass>(headModel);
         GLuint strandBuffer = hairComputePass->GetStrandBuffer();
         m_renderer.AddRenderPass(std::move(hairComputePass));
         m_renderer.AddRenderPass(std::make_unique<HairRenderPass>(m_renderer,strandBuffer));
