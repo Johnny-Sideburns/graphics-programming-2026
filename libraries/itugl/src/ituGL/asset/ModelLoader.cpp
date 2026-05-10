@@ -232,6 +232,26 @@ std::vector<GLubyte> ModelLoader::CollectVertexData(const aiMesh& meshData, Vert
     {
         vertexFormat.AddVertexAttribute<float>(meshData.mNumUVComponents[uvChannel], static_cast<VertexAttribute::Semantic>(uvSemantic + uvChannel));
     }
+    // ===== DEBUG PRINT =====
+    {
+        auto it = vertexFormat.LayoutBegin(meshData.mNumVertices, interleaved);
+        auto end = vertexFormat.LayoutEnd();
+
+        std::cout << "---- Vertex Layout ----\n";
+
+        for (; it != end; it++)
+        {
+            const VertexAttribute& attr = it->GetAttribute();
+
+            std::cout << "semantic=" << (int)attr.GetSemantic()
+                << " size=" << attr.GetSize()
+                << " stride=" << it->GetStride()
+                << " offset=" << it->GetOffset()
+                << std::endl;
+        }
+        std::cout << "Vertex count=" << meshData.mNumVertices << std::endl;
+    }
+    // ==========================================
 
     std::vector<GLubyte> vertexData;
     vertexData.resize(vertexFormat.GetSize() * meshData.mNumVertices);
@@ -258,7 +278,9 @@ std::vector<GLubyte> ModelLoader::CollectElementData(const aiMesh& meshData, Dat
 {
     std::vector<GLubyte> elementData;
 
-    elementType = ElementBufferObject::GetSmallestType(meshData.mNumVertices);
+    //elementType = ElementBufferObject::GetSmallestType(meshData.mNumVertices);
+    //change from smallest type to consistent type for computeshader consistency
+    elementType = Data::Type::UInt;
     int elementSize = Data::GetTypeSize(elementType);
 
     //Reserve max possible size

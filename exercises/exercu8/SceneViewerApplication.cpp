@@ -275,7 +275,7 @@ void SceneViewerApplication::InitializeModels()
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::SpecularTexture, "SpecularTexture");
 
     // Load model
-    headModel = loader.LoadShared("models/head/headdy.obj");
+    headModel = loader.LoadShared("models/head/head.obj");
     m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
 
     // Add 'Extra Textures'
@@ -306,15 +306,6 @@ void SceneViewerApplication::InitializeModels()
 
     m_target = paintTexture;
     
-    
-    /*
-    //hair model
-    std::shared_ptr<Model> hairModel = loader.LoadShared("models/hair/hairstrand.obj");
-    m_scene.AddSceneNode(std::make_shared<SceneModel>("hair", hairModel));
-
-    hairModel->GetMaterial(0) = *m_hairMaterial;
-    */
-
 }
 
 void SceneViewerApplication::InitializeRenderer()
