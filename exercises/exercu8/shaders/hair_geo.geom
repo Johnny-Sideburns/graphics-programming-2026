@@ -48,7 +48,7 @@ vec3 getStrandPos(int s, out vec2 uv)
         w * WorldPosition[2];
 }
 
-// interpolated normal (stable)
+// interpolated normal
 vec3 getNormal(vec2 uv)
 {
     return normalize(
@@ -75,8 +75,6 @@ void main()
                 
         GeoWorldPosition = WorldPosition[i];
         GeoWorldNormal = WorldNormal[i];
-        //GeoWorldTangent = WorldTangent[i];
-        //GeoWorldBitangent = WorldBitangent[i];
         GeoTexCoord = TexCoord[i];
         gl_Position = gl_in[i].gl_Position;
 
@@ -97,8 +95,7 @@ void main()
         vec2 growth = texture(PaintTexture, uv).rg;
         vec2 masked = texture(HairTexture, uv).rg;
 
-        if (length(growth) * length(masked) <= 0.0)
-            continue;
+        if (length(growth * masked) <= 0.0) continue;
 
         float mask = masked.r;
         float grow = growth.r;

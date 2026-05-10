@@ -25,4 +25,11 @@ private:
     std::shared_ptr<ShaderProgram> m_computeShaderProgram;
     GLuint m_strandBuffer;
     GLuint m_vertexBuffer;
+    GLuint m_indexBuffer;
+    
+    ShaderProgram::Location m_hairLocation;
+    ShaderProgram::Location m_paintLocation;
+
+    std::shared_ptr<Texture2DObject> m_hairTexture;
+    std::shared_ptr<Texture2DObject> m_paintTexture;
 };

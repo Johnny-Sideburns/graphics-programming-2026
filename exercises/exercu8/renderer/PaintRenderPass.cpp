@@ -179,15 +179,6 @@ void PaintRenderPass::InitTextures(int width, int height)
     m_depthTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
     m_depthTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-    // set the uv texture 2d 32float for precision (might be overkill)
-    /*
-    m_uvTexture = std::make_shared<Texture2DObject>();
-    m_uvTexture->Bind();
-    m_uvTexture->SetImage(0, width, height, TextureObject::FormatRG, TextureObject::InternalFormatRG32F);
-    m_uvTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
-    m_uvTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
-    */
-
     // Bind the normals texture 
     m_normalsTexture = std::make_shared<Texture2DObject>();
     m_normalsTexture->Bind();
@@ -208,16 +199,6 @@ void PaintRenderPass::InitTextures(int width, int height)
     m_canvasTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
     m_canvasTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
-    /*
-    //m_idTexture->SetImage(0, width, height, TextureObject::FormatR, TextureObject::InternalFormatR32UI);
-    // Bind the id texture 1d Uint
-    m_idTexture = std::make_shared<Texture2DObject>();
-    m_idTexture->Bind();
-    // Use the OpenGL internal format GL_R32UI because it's not included in textureobject
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, width, height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
-    m_idTexture->SetParameter(TextureObject::ParameterEnum::MinFilter, GL_NEAREST);
-    m_idTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
-    */
 
     Texture2DObject::Unbind();
 }

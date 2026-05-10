@@ -233,35 +233,6 @@ void SceneViewerApplication::InitializeMaterial()
     assert(shaderProgramPtr);
     m_defaultMaterial = std::make_shared<Material>(shaderProgramPtr, filteredUniforms);
 
-    /*
-    this is idiotic shit 
-    std::shared_ptr<ShaderProgram> hairShader = std::make_shared<ShaderProgram>();
-    std::vector<const char*> compVertexShaderPaths;
-    compVertexShaderPaths.push_back("shaders/version330.glsl");
-    compVertexShaderPaths.push_back("shaders/hair_comp.vert");
-    Shader hairVS = ShaderLoader(Shader::VertexShader).Load(compVertexShaderPaths);
-
-    Shader hairFS = ShaderLoader(Shader::FragmentShader).Load(fragmentShaderPaths); 
-    hairShader->Build(hairVS, hairFS);
-
-    m_renderer.RegisterShaderProgram(hairShader,
-        [=](const ShaderProgram& shaderProgram, const glm::mat4& worldMatrix, const Camera& camera, bool cameraChanged)
-        {
-            if (cameraChanged)
-            {
-                shaderProgram.SetUniform(cameraPositionLocation, camera.ExtractTranslation());
-                shaderProgram.SetUniform(viewProjMatrixLocation, camera.GetViewProjectionMatrix());
-            }
-            shaderProgram.SetUniform(worldMatrixLocation, worldMatrix);
-        },
-        m_renderer.GetDefaultUpdateLightsFunction(*hairShader)
-    );
-
-    assert(hairShader);
-
-    m_hairMaterial = std::make_shared<Material>(hairShader, filteredUniforms);
-    */
-
 }
 
 

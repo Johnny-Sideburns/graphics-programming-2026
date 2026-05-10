@@ -11,7 +11,7 @@ HairRenderPass::HairRenderPass(Renderer& renderer, GLuint strandBuffer)
 {
 	//InitShader();
 	m_strandCount = 262144;
-	m_segments = 12;
+	m_segments = 24;
 	InitShader(renderer);
 	glGenVertexArrays(1, &m_dummyVAO);
 }

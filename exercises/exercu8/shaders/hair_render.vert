@@ -33,7 +33,7 @@ void main()
     int segID = gl_VertexID / 2;
     int side  = gl_VertexID % 2;
 
-    float t = float(segID) / float(Segments);
+    float t = min(float(segID) / float(Segments), s.grow );
 
     vec3 center = bezier(s.p0, s.p1, s.p2, s.p3, t);
     vec3 next   = bezier(s.p0, s.p1, s.p2, s.p3, t + 0.01);
@@ -44,7 +44,7 @@ void main()
     
     vec3 c = cross(viewDir, dir);
 
-    //if viewdir and dir are too close set to 1
+    //if viewdir and dir are too close default to 1
     if (length(c) < 1e-5)
         c = vec3(1,0,0);
 
