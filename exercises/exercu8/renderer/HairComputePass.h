@@ -26,6 +26,7 @@ private:
     GLuint m_strandBuffer;
     GLuint m_vertexBuffer;
     GLuint m_indexBuffer;
+    GLuint m_counterBuffer;
     
     ShaderProgram::Location m_hairLocation;
     ShaderProgram::Location m_paintLocation;

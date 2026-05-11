@@ -46,8 +46,12 @@ void HairComputePass::InitComputeShader() {
 	glGenBuffers(1, &m_strandBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_strandBuffer);
 
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) * 262144 *32, nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) * 262144 *4, nullptr, GL_DYNAMIC_DRAW);
 
+	// initiate atomic counter
+	glGenBuffers(1, &m_counterBuffer);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_counterBuffer);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
 	
 }
 
@@ -62,6 +66,13 @@ void HairComputePass::Render()
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, m_vertexBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_indexBuffer);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_indexBuffer);
+
+	// set atomic counter to 0 and bind it
+	GLuint zero = 0;
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_counterBuffer);
+	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(GLuint), &zero);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, m_counterBuffer);
+
 	// bind textures
 	m_computeShaderProgram->SetTexture(m_hairLocation, 0, *m_hairTexture);
 	m_computeShaderProgram->SetTexture(m_paintLocation, 1, *m_paintTexture);

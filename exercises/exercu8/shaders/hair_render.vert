@@ -1,8 +1,6 @@
 struct Strand
 {
     vec3 p0, p1, p2, p3;
-    vec2 uv;
-    float width;
     float seed;
     float grow;
 };
@@ -50,7 +48,9 @@ void main()
 
     vec3 right = normalize(c);
 
-    float offset = (side == 0 ? -1.0 : 1.0) * s.width;
+    float width = 0.001;
+
+    float offset = (side == 0 ? -1.0 : 1.0) * width;
 
     vec3 world = center + right * offset;
 
