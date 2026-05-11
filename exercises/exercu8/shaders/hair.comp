@@ -96,7 +96,7 @@ void main()
     vec2 uv2 = fromData(getUv(i2)).xy;
 
     float area = length(cross(p1 - p0, p2 - p0))/2;
-    uint hairprsquareunit = 150000;
+    uint hairprsquareunit = 120000;
     //uint max = 10;
     //uint hairToSpawn = int(min(ceil(hairprsquareunit * area), max));
 

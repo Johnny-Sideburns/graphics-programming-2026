@@ -21,16 +21,14 @@ uniform vec3 CameraPosition;
 
 void main()
 {
+	// I have to activate the textures to not get a memory error... blue channel is empty, this is a hack
 	vec3 paintHair = texture(PaintTexture, TexCoord).rgb * texture(HairTexture, TexCoord).rgb;
-	if (length(paintHair) > 0.0){
-		FragColor = vec4(paintHair, 1.0);
-		return;
-	}
+	
 	SurfaceData data;
 	data.normal = SampleNormalMap(NormalTexture, TexCoord, normalize(WorldNormal), normalize(WorldTangent), normalize(WorldBitangent));
 	data.albedo = Color * texture(ColorTexture, TexCoord).rgb;
 	vec3 arm = texture(SpecularTexture, TexCoord).rgb;
-	data.ambientOcclusion = arm.x;
+	data.ambientOcclusion = arm.x + paintHair.b;
 	data.roughness        = arm.y;
 	data.metalness        = arm.z;
 

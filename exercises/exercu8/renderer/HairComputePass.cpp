@@ -36,8 +36,6 @@ void HairComputePass::InitComputeShader() {
 	m_hairLocation = m_computeShaderProgram->GetUniformLocation("HairTexture");
 	m_paintLocation = m_computeShaderProgram->GetUniformLocation("PaintTexture");
 	
-
-	
 	// and set them in the computeshaderProgram	
 	m_computeShaderProgram->SetTexture(m_hairLocation, 0, *m_hairTexture);
 	m_computeShaderProgram->SetTexture(m_paintLocation, 1, *m_paintTexture);
@@ -46,7 +44,10 @@ void HairComputePass::InitComputeShader() {
 	glGenBuffers(1, &m_strandBuffer);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, m_strandBuffer);
 
-	glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(glm::vec4) * 262144 *4, nullptr, GL_DYNAMIC_DRAW);
+	// the storage buffer for all the strands needs to be massive
+	// 4 vec3 and 2 floats currently, multiplied by the amount of hair strands
+	// might be able to compact it better
+	glBufferData(GL_SHADER_STORAGE_BUFFER, (sizeof(glm::vec4) * 4 + sizeof(float) * 2) * 131072, nullptr, GL_DYNAMIC_DRAW);
 
 	// initiate atomic counter
 	glGenBuffers(1, &m_counterBuffer);
@@ -77,8 +78,8 @@ void HairComputePass::Render()
 	m_computeShaderProgram->SetTexture(m_hairLocation, 0, *m_hairTexture);
 	m_computeShaderProgram->SetTexture(m_paintLocation, 1, *m_paintTexture);
 
-	// Dispatch compute 2048 * 64 for 131 072 around as much hair as a human has, maybe I should up this because of beard
-	glDispatchCompute(4096 , 1, 1);
+	
+	glDispatchCompute(2048 , 1, 1);
 
 	glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
