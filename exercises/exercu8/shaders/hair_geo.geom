@@ -1,6 +1,6 @@
 
 layout(triangles) in;
-layout(triangle_strip, max_vertices = 1024) out;
+layout(triangle_strip, max_vertices = 256) out;
 
 
 //worldTangent and bitangent are ignored here to reduce amount of data emitted
@@ -83,8 +83,8 @@ void main()
     EndPrimitive();
 
 
-    const int strandCount = 2;
-    int segments = 12;
+    const int strandCount = 3;
+    int segments = 8;
     float width = 0.0005;
 
     for (int s = 0; s < strandCount; s++)
@@ -117,7 +117,7 @@ void main()
 
         //bezier control points
      
-        vec3 gravity = vec3(0,-1,0);
+        vec3 gravity = vec3(0,-1.5,0);
 
         vec3 p0 = pos;
         vec3 p1 = pos + normal * (height * 0.3);
@@ -145,7 +145,7 @@ void main()
             vec3 strandNormal = normalize(cross(side, dir));
             GeoWorldNormal = strandNormal;
 
-            GeoTexCoord = vec2(mix(0.8,0.92,r), 0.95-t*0.95);
+            GeoTexCoord = vec2(mix(0.85,0.92,r), 1.0-t);
 
             GeoWorldPosition = left;
             gl_Position = ViewProjMatrix * vec4(left, 1.0);

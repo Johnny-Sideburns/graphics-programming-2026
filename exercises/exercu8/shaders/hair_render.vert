@@ -43,7 +43,7 @@ void main()
     vec3 c = cross(viewDir, dir);
 
     //if viewdir and dir are too close default to 1
-    if (length(c) < 1e-5)
+    if (length(c) < 0.0001)
         c = vec3(1,0,0);
 
     vec3 right = normalize(c);

@@ -275,7 +275,8 @@ void SceneViewerApplication::InitializeModels()
     loader.SetMaterialProperty(ModelLoader::MaterialProperty::SpecularTexture, "SpecularTexture");
 
     // Load model
-    headModel = loader.LoadShared("models/head/head.obj");
+    auto headPath = m_use_compute ? "models/head/head.obj" : "models/head/headdy.obj";
+    headModel = loader.LoadShared(headPath);
     m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
 
     // Add 'Extra Textures'

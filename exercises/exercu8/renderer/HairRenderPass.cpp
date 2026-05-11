@@ -35,15 +35,12 @@ void HairRenderPass::InitShader(Renderer& renderer)
     m_shaderProgramPtr = std::make_shared<ShaderProgram>();
     m_shaderProgramPtr->Build(vertexShader, fragmentShader);
 
-
     //ShaderProgram::Location viewProjMatrixLocation = m_shaderProgramPtr->GetUniformLocation("ViewProjMatrix");
     //ShaderProgram::Location segmentsLocation = m_shaderProgramPtr->GetUniformLocation("segments");
-
 
     m_viewProjLocation = m_shaderProgramPtr->GetUniformLocation("ViewProjMatrix");
     m_segmentsLocation = m_shaderProgramPtr->GetUniformLocation("Segments");
     m_cameraPositionLocation = m_shaderProgramPtr->GetUniformLocation("CameraPosition");
-  
     
 }
 
@@ -63,15 +60,9 @@ void HairRenderPass::Render()
     m_shaderProgramPtr->SetUniform(m_viewProjLocation, camera.GetViewProjectionMatrix());
     m_shaderProgramPtr->SetUniform(m_segmentsLocation, m_segments);
     m_shaderProgramPtr->SetUniform(m_cameraPositionLocation, camera.ExtractTranslation());
-    // Draw
-    glDrawArraysInstanced(
-        GL_TRIANGLE_STRIP,
-        0,
-        m_segments * 2,
-        m_strandCount
-    );
-
-    glBindVertexArray(0);
     
+    // Draw
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, m_segments * 2, m_strandCount);
+    glBindVertexArray(0);
     
 }
