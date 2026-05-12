@@ -1,3 +1,4 @@
+// strand definition
 struct Strand
 {
     vec3 p0, p1, p2, p3;
@@ -5,6 +6,7 @@ struct Strand
     float grow;
 };
 
+// inputs
 layout(std430, binding=0) buffer StrandBuffer
 {
     Strand strands[];
@@ -23,6 +25,13 @@ vec3 bezier(vec3 a, vec3 b, vec3 c, vec3 d, float t)
            t*t*t*d;
 }
 
+//Outputs
+out vec3 WorldPosition;
+out vec3 WorldNormal;
+//out vec3 WorldTangent;
+//out vec3 WorldBitangent;
+out vec2 TexCoord;
+
 void main()
 {
     int strandID = gl_InstanceID;
@@ -31,13 +40,14 @@ void main()
     int segID = gl_VertexID / 2;
     int side  = gl_VertexID % 2;
 
+    // when tracing along t to get the position of the bezier curve, if t goes beyond the "length" of the hair, it get's clamped
     float t = min(float(segID) / float(Segments), s.grow );
 
     vec3 center = bezier(s.p0, s.p1, s.p2, s.p3, t);
     vec3 next   = bezier(s.p0, s.p1, s.p2, s.p3, t + 0.01);
 
     vec3 dir = normalize(next - center);
-    
+ 
     vec3 viewDir = normalize(center - CameraPosition);
     
     vec3 c = cross(viewDir, dir);
@@ -54,5 +64,8 @@ void main()
 
     vec3 world = center + right * offset;
 
+    WorldPosition = world;
+    WorldNormal = -viewDir;
+    TexCoord = vec2(mix(0.8,0.9, s.seed), 1-t);
     gl_Position = ViewProjMatrix * vec4(world, 1.0);
 }

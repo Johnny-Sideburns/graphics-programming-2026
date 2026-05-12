@@ -183,12 +183,12 @@ void SceneViewerApplication::InitializeMaterial()
 {
     // Load and build shader
     std::vector<const char*> vertexShaderPaths;
-    vertexShaderPaths.push_back("shaders/version430.glsl");
+    vertexShaderPaths.push_back("shaders/version330.glsl");
     vertexShaderPaths.push_back("shaders/default.vert");
     Shader vertexShader = ShaderLoader(Shader::VertexShader).Load(vertexShaderPaths);
 
     std::vector<const char*> fragmentShaderPaths;
-    fragmentShaderPaths.push_back("shaders/version430.glsl");
+    fragmentShaderPaths.push_back("shaders/version330.glsl");
     fragmentShaderPaths.push_back("shaders/utils.glsl");
     fragmentShaderPaths.push_back("shaders/lambert-ggx.glsl");
     fragmentShaderPaths.push_back("shaders/lighting.glsl");
@@ -246,7 +246,7 @@ void SceneViewerApplication::InitializeModels()
     m_skyboxTexture->GetParameter(TextureObject::ParameterFloat::MaxLod, maxLod);
     TextureCubemapObject::Unbind();
 
-    m_defaultMaterial->SetUniformValue("AmbientColor", glm::vec3(0.25f));
+    //m_defaultMaterial->SetUniformValue("AmbientColor", glm::vec3(0.25f)); <- I think this was for blinn-phong...
 
     m_defaultMaterial->SetUniformValue("EnvironmentTexture", m_skyboxTexture);
     m_defaultMaterial->SetUniformValue("EnvironmentMaxLod", maxLod);
@@ -276,13 +276,13 @@ void SceneViewerApplication::InitializeModels()
 
     // Load model
     auto headPath = m_use_compute ? "models/head/head.obj" : "models/head/headdy.obj";
-    headModel = loader.LoadShared(headPath);
-    m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", headModel));
+    m_headModel = loader.LoadShared(headPath);
+    m_scene.AddSceneNode(std::make_shared<SceneModel>("thing", m_headModel));
 
     // Add 'Extra Textures'
 
     // PaintTexture is an empty texture that gets painted onto in the PaintRenderPass
-    ShaderProgram::Location paintLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("PaintTexture");
+    ShaderProgram::Location paintLocation = m_headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("PaintTexture");
 
     std::shared_ptr<Texture2DObject> paintTexture = std::make_shared<Texture2DObject>();
     paintTexture->Bind();
@@ -293,13 +293,13 @@ void SceneViewerApplication::InitializeModels()
     paintTexture->SetParameter(TextureObject::ParameterEnum::MagFilter, GL_NEAREST);
 
     // Hair'grow'Texture is a texture that outlines hair and beard grow zones on the mesh
-    ShaderProgram::Location hairLocation = headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("HairTexture");
+    ShaderProgram::Location hairLocation = m_headModel->GetMaterial(0).GetShaderProgram()->GetUniformLocation("HairTexture");
     std::shared_ptr<Texture2DObject> hairGrowthTexture = std::make_shared<Texture2DObject>(loader.GetTexture2DLoader().Load("models/head/HairZones.png"));
  
-    int count = headModel->GetMaterialCount();
+    int count = m_headModel->GetMaterialCount();
     for (int i = 0; i < count; i++) {
-        headModel->GetMaterial(i).SetUniformValue(paintLocation, paintTexture);
-        headModel->GetMaterial(i).SetUniformValue(hairLocation, hairGrowthTexture);
+        m_headModel->GetMaterial(i).SetUniformValue(paintLocation, paintTexture);
+        m_headModel->GetMaterial(i).SetUniformValue(hairLocation, hairGrowthTexture);
 
     }
     m_defaultMaterial->SetUniformValue(paintLocation, paintTexture);
@@ -313,10 +313,10 @@ void SceneViewerApplication::InitializeRenderer()
 {
     m_renderer.AddRenderPass(std::make_unique<SkyboxRenderPass>(m_skyboxTexture));
     if (m_use_compute) {
-        std::unique_ptr<HairComputePass> hairComputePass = std::make_unique<HairComputePass>(headModel);
+        std::unique_ptr<HairComputePass> hairComputePass = std::make_unique<HairComputePass>(m_headModel);
         GLuint strandBuffer = hairComputePass->GetStrandBuffer();
         m_renderer.AddRenderPass(std::move(hairComputePass));
-        m_renderer.AddRenderPass(std::make_unique<HairRenderPass>(m_renderer,strandBuffer));
+        m_renderer.AddRenderPass(std::make_unique<HairRenderPass>(m_renderer, m_headModel, strandBuffer));
     }
     m_renderer.AddRenderPass(std::make_unique<ForwardRenderPass>());
 }

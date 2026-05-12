@@ -1,8 +1,8 @@
 //Inputs
 in vec3 WorldPosition;
 in vec3 WorldNormal;
-in vec3 WorldTangent;
-in vec3 WorldBitangent;
+//in vec3 WorldTangent;
+//in vec3 WorldBitangent;
 in vec2 TexCoord;
 
 //Outputs
@@ -14,21 +14,15 @@ uniform sampler2D ColorTexture;
 uniform sampler2D NormalTexture;
 uniform sampler2D SpecularTexture;
 
-uniform sampler2D PaintTexture;
-uniform sampler2D HairTexture;
-
 uniform vec3 CameraPosition;
 
 void main()
 {
-	// I have to activate the textures to not get a memory error... blue channel is 0, this is a bit hacky
-	vec3 paintHair = texture(PaintTexture, TexCoord).rgb * texture(HairTexture, TexCoord).rgb;
-	
 	SurfaceData data;
-	data.normal = SampleNormalMap(NormalTexture, TexCoord, normalize(WorldNormal), normalize(WorldTangent), normalize(WorldBitangent));
+	data.normal = WorldNormal;//SampleNormalMap(NormalTexture, TexCoord, normalize(WorldNormal), normalize(WorldTangent), normalize(WorldBitangent));
 	data.albedo = Color * texture(ColorTexture, TexCoord).rgb;
 	vec3 arm = texture(SpecularTexture, TexCoord).rgb;
-	data.ambientOcclusion = arm.x + paintHair.b;
+	data.ambientOcclusion = arm.x;
 	data.roughness        = arm.y;
 	data.metalness        = arm.z;
 

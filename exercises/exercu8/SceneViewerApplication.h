@@ -59,6 +59,6 @@ private:
 
     std::shared_ptr<Painter> m_painter;
     std::shared_ptr<Texture2DObject> m_target;
-    std::shared_ptr<Model> headModel;
+    std::shared_ptr<Model> m_headModel;
 
 };
