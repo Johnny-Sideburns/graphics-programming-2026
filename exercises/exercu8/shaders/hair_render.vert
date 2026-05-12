@@ -15,6 +15,7 @@ layout(std430, binding=0) buffer StrandBuffer
 uniform mat4 ViewProjMatrix;
 uniform vec3 CameraPosition;
 uniform int Segments;
+uniform mat4 WorldMatrix;
 
 vec3 bezier(vec3 a, vec3 b, vec3 c, vec3 d, float t)
 {
@@ -43,8 +44,8 @@ void main()
     // when tracing along t to get the position of the bezier curve, if t goes beyond the "length" of the hair, it get's clamped
     float t = min(float(segID) / float(Segments), s.grow );
 
-    vec3 center = bezier(s.p0, s.p1, s.p2, s.p3, t);
-    vec3 next   = bezier(s.p0, s.p1, s.p2, s.p3, t + 0.01);
+    vec3 center = (WorldMatrix * vec4(bezier(s.p0, s.p1, s.p2, s.p3, t),1)).xyz;
+    vec3 next   = (WorldMatrix * vec4(bezier(s.p0, s.p1, s.p2, s.p3, t + 0.01),1)).xyz;
 
     vec3 dir = normalize(next - center);
  

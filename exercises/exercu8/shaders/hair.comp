@@ -97,8 +97,6 @@ void main()
 
     float area = length(cross(p1 - p0, p2 - p0))/2;
     uint hairprsquareunit = 120000;
-    //uint max = 10;
-    //uint hairToSpawn = int(min(ceil(hairprsquareunit * area), max));
 
     uint hairToSpawn = int(ceil(hairprsquareunit * area));
 
@@ -117,8 +115,8 @@ void main()
         float w = 1.0 - u - v;
 
         //use the points to construct a "random" point on the triangle and get pos, normal and uv
-        vec3 pos = barycentric(p0, p1, p2, vec3(u,v,w));
-        //vec3 normal = barycentric(p0, p1, p2, vec3(u,v,w));
+        //vec3 pos = barycentric(p0, p1, p2, vec3(u,v,w));
+        vec3 pos = p0*u + p1*v + p2*w;
         vec3 normal = n0*u + n1*v + n2*w;
         vec2 uv  = uv0*u + uv1*v + uv2*w;
 
